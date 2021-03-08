@@ -1,6 +1,4 @@
-from numpy import ndarray
-
-from h2o.h2o import *
+from h2o.quadratures.quadrature_utils import *
 
 
 def get_number_of_quadrature_points_in_triangle(integration_order: int) -> int:
@@ -12,11 +10,12 @@ def get_number_of_quadrature_points_in_triangle(integration_order: int) -> int:
     Returns:
 
     """
-    _, qw = get_triangle_quadrature_data(integration_order)
-    return len(qw)
+    qw = get_triangle_quadrature(integration_order, QuadratureItem.WEIGHTS)
+    number_of_quadrature_points_in_triangle = len(qw)
+    return number_of_quadrature_points_in_triangle
 
 
-def get_triangle_quadrature_data(integration_order: int,) -> (ndarray, ndarray):
+def get_triangle_quadrature(integration_order: int, quadrature_item: QuadratureItem) -> ndarray:
     """
 
     QUADRATURE RULE BASED ON QUADPY scheme = quadpy.t2.get_good_scheme(integration_order)
@@ -201,4 +200,9 @@ def get_triangle_quadrature_data(integration_order: int,) -> (ndarray, ndarray):
         ]
     else:
         raise ValueError("quadrature order not supported")
-    return np.array(reference_points), np.array(reference_weights)
+    if quadrature_item == QuadratureItem.POINTS:
+        return np.array(reference_points)
+    elif quadrature_item == QuadratureItem.WEIGHTS:
+        return np.array(reference_weights)
+    else:
+        raise KeyError("either points or weights")

@@ -1,12 +1,48 @@
-from numpy import ndarray
-
-import h2o.geometry.shapes.segment as isegment
-import h2o.geometry.shapes.triangle as itriangle
+import h2o.geometry.shapes.shape_segment as isegment
+import h2o.geometry.shapes.shape_triangle as itriangle
+import h2o.quadratures.quadrature as quad
 from h2o.h2o import *
-from h2o.quadratures.shape_quadrature import ShapeQuadrature
+
+def get_rotation_matrix(face_shape_type: ShapeType, face_vertices: ndarray) -> ndarray:
+    """
+    Args:
+        face_shape_type:
+        face_vertices:
+    Returns:
+    """
+    if face_shape_type == ShapeType.SEGMENT:
+        e_0 = face_vertices[:, 1] - face_vertices[:, 0]
+        e_0 = e_0 / np.linalg.norm(e_0)
+        e_1 = np.array([e_0[1], -e_0[0]])
+        mapping_matrix = np.array([e_0, e_1])
+    else:
+        raise KeyError("NO")
+    return mapping_matrix
+
+
+def _check_shape(shape_type: ShapeType, shape_vertices: ndarray):
+    """
+
+    Args:
+        shape_type:
+        shape_vertices:
+
+    Returns:
+
+    """
+    if shape_type == ShapeType.SEGMENT:
+        if not shape_vertices.shape[1] == 2:
+            raise ValueError("wrong number of vertices")
+    elif shape_type == ShapeType.TRIANGLE:
+        if not shape_vertices.shape[1] == 3:
+            raise ValueError("wrong number of vertices")
+    else:
+        raise KeyError("unsupported shape")
 
 
 class Shape:
+    type: ShapeType
+    vertices: ndarray
     centroid: ndarray
     volume: float
     diameter: float
@@ -18,6 +54,9 @@ class Shape:
             shape_type:
             shape_vertices:
         """
+        _check_shape(shape_type, shape_vertices)
+        self.type = shape_type
+        self.vertices = shape_vertices
         if shape_type == ShapeType.SEGMENT:
             self.centroid = isegment.get_segment_centroid(shape_vertices)
             self.volume = isegment.get_segment_volume(shape_vertices)
@@ -27,20 +66,53 @@ class Shape:
             self.volume = itriangle.get_triangle_volume(shape_vertices)
             self.diameter = itriangle.get_triangle_diameter(shape_vertices)
 
+    def get_quadrature_points(
+        self, integration_order: int, quadrature_type: QuadratureType = QuadratureType.GAUSS
+    ) -> ndarray:
+        """
 
-def get_shape_quadrature_data(
-    shape_type: ShapeType, shape_vertices: ndarray, shape_volume: float, integration_order: int,
-) -> (ndarray, ndarray):
-    """
+        Args:
+            integration_order:
+            quadrature_type:
 
-    Args:
-        shape_type:
-        shape_vertices:
-        shape_volume:
-        integration_order:
+        Returns:
 
-    Returns:
+        """
+        quadrature_points = quad.get_shape_quadrature_points(
+            self.type, self.vertices, integration_order, quadrature_type=quadrature_type
+        )
+        return quadrature_points
 
-    """
-    shape_quadrature = ShapeQuadrature(shape_type, shape_vertices, shape_volume, integration_order)
-    return shape_quadrature.quadrature_points, shape_quadrature.quadrature_weights
+    def get_quadrature_weights(
+        self, integration_order: int, quadrature_type: QuadratureType = QuadratureType.GAUSS
+    ) -> ndarray:
+        """
+
+        Args:
+            integration_order:
+            quadrature_type:
+
+        Returns:
+
+        """
+        quadrature_weights = quad.get_shape_quadrature_weights(
+            self.type, self.volume, integration_order, quadrature_type=quadrature_type
+        )
+        return quadrature_weights
+
+    def get_quadrature_size(
+        self, integration_order: int, quadrature_type: QuadratureType = QuadratureType.GAUSS
+    ) -> int:
+        """
+
+        Args:
+            integration_order:
+            quadrature_type:
+
+        Returns:
+
+        """
+        quadrature_size = quad.get_shape_quadrature_size(
+            self.type, integration_order, quadrature_type=quadrature_type
+        )
+        return quadrature_size

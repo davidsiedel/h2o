@@ -7,6 +7,7 @@ from h2o.h2o import *
 
 class Basis:
     dimension: int
+    polynomial_order: int
     evaluate_derivative: Callable[[ndarray, ndarray, float, int], ndarray]
     evaluate_function: Callable[[ndarray, ndarray, float], ndarray]
 
@@ -25,5 +26,6 @@ class Basis:
         else:
             raise KeyError("unsupported basis")
         self.dimension = b.dimension
+        self.polynomial_order = polynomial_order
         self.evaluate_function = b.get_phi_vector
         self.evaluate_derivative = b.get_d_phi_vector

@@ -1,6 +1,4 @@
-import numpy as np
-from numpy import ndarray
-from typing import List, Callable, Dict
+from h2o.quadratures.quadrature_utils import *
 
 
 def get_number_of_quadrature_points_in_segment(integration_order: int) -> int:
@@ -12,11 +10,12 @@ def get_number_of_quadrature_points_in_segment(integration_order: int) -> int:
     Returns:
 
     """
-    _, qw = get_segment_quadrature_data(integration_order)
-    return len(qw)
+    qw = get_segment_quadrature(integration_order, QuadratureItem.WEIGHTS)
+    number_of_quadrature_points_in_segment = len(qw)
+    return number_of_quadrature_points_in_segment
 
 
-def get_segment_quadrature_data(integration_order: int,) -> (ndarray, ndarray):
+def get_segment_quadrature(integration_order: int, quadrature_item: QuadratureItem) -> ndarray:
     """
 
     Args:
@@ -139,4 +138,9 @@ def get_segment_quadrature_data(integration_order: int,) -> (ndarray, ndarray):
         ]
     else:
         raise ValueError("quadrature order not supported")
-    return np.array(reference_points), np.array(reference_weights)
+    if quadrature_item == QuadratureItem.POINTS:
+        return np.array(reference_points)
+    elif quadrature_item == QuadratureItem.WEIGHTS:
+        return np.array(reference_weights)
+    else:
+        raise KeyError("either points or weights")

@@ -1,12 +1,12 @@
 from h2o.h2o import *
 from h2o.fem.basis.basis import Basis
-from h2o.pbbb.field import Field
-from typing import Dict, Tuple
 
 
 class FiniteElement:
     element_type: ElementType
     polynomial_order: int
+    construction_integration_order: int
+    computation_integration_order: int
     basis_type: BasisType
     cell_basis_k: Basis
     cell_basis_l: Basis
@@ -31,12 +31,13 @@ class FiniteElement:
         self.element_type = element_type
         self.polynomial_order = polynomial_order
         self.basis_type = basis_type
-        if element_type == ElementType.HDG_EQUAL:
+        if element_type == ElementType.HDG_LOW:
+            self.cell_polynomial_order = polynomial_order - 1
             self.cell_basis_k = Basis(
                 polynomial_order, euclidean_dimension, basis_type=basis_type
             )
             self.cell_basis_l = Basis(
-                polynomial_order, euclidean_dimension, basis_type=basis_type
+                self.cell_polynomial_order, euclidean_dimension, basis_type=basis_type
             )
             self.face_basis_k = Basis(
                 polynomial_order, euclidean_dimension - 1, basis_type=basis_type
@@ -44,12 +45,31 @@ class FiniteElement:
             self.cell_basis_r = Basis(
                 polynomial_order + 1, euclidean_dimension, basis_type=basis_type
             )
+            self.construction_integration_order = 2 * (polynomial_order + 1)
+            self.computation_integration_order = 2 * (polynomial_order + 1)
+        elif element_type == ElementType.HDG_EQUAL:
+            self.cell_polynomial_order = polynomial_order
+            self.cell_basis_k = Basis(
+                polynomial_order, euclidean_dimension, basis_type=basis_type
+            )
+            self.cell_basis_l = Basis(
+                self.cell_polynomial_order, euclidean_dimension, basis_type=basis_type
+            )
+            self.face_basis_k = Basis(
+                polynomial_order, euclidean_dimension - 1, basis_type=basis_type
+            )
+            self.cell_basis_r = Basis(
+                polynomial_order + 1, euclidean_dimension, basis_type=basis_type
+            )
+            self.construction_integration_order = 2 * (polynomial_order + 1)
+            self.computation_integration_order = 2 * (polynomial_order + 1)
         elif element_type == ElementType.HDG_HIGH:
+            self.cell_polynomial_order = polynomial_order + 1
             self.cell_basis_k = Basis(
                 polynomial_order, euclidean_dimension, basis_type=basis_type
             )
             self.cell_basis_l = Basis(
-                polynomial_order + 1, euclidean_dimension, basis_type=basis_type
+                self.cell_polynomial_order, euclidean_dimension, basis_type=basis_type
             )
             self.face_basis_k = Basis(
                 polynomial_order, euclidean_dimension - 1, basis_type=basis_type
@@ -57,19 +77,9 @@ class FiniteElement:
             self.cell_basis_r = Basis(
                 polynomial_order + 1, euclidean_dimension, basis_type=basis_type
             )
-        elif element_type == ElementType.HDG_LOW:
-            self.cell_basis_k = Basis(
-                polynomial_order, euclidean_dimension, basis_type=basis_type
-            )
-            self.cell_basis_l = Basis(
-                polynomial_order - 1, euclidean_dimension, basis_type=basis_type
-            )
-            self.face_basis_k = Basis(
-                polynomial_order, euclidean_dimension - 1, basis_type=basis_type
-            )
-            self.cell_basis_r = Basis(
-                polynomial_order + 1, euclidean_dimension, basis_type=basis_type
-            )
+            self.construction_integration_order = 2 * (polynomial_order + 1)
+            self.computation_integration_order = 2 * (polynomial_order + 1)
+
         else:
             raise KeyError("NO")
         return

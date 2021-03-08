@@ -1,7 +1,7 @@
 from numpy import ndarray as ndarray
 from typing import List, Dict
 import h2o.mesh.parsers.geof as geof
-from h2o.quadratures.shape_quadrature import ShapeQuadrature
+from h2o.quadratures.quadrature import ShapeQuadrature
 from h2o.h2o import *
 
 
@@ -20,7 +20,7 @@ def get_number_of_quadrature_points_in_mesh(
     """
     number_of_quadrature_points_in_mesh = 0
     for item_shape in items_shapes:
-        n = ShapeQuadrature.get_number_of_quadrature_points(
+        n = get_number_of_quadrature_points(
             item_shape, integration_order, quadrature_type=quadrature_type
         )
         number_of_quadrature_points_in_mesh += n

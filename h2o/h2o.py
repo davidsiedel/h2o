@@ -1,5 +1,7 @@
 from enum import Enum, auto
+from typing import List, Dict, Tuple, Callable, Union
 import numpy as np
+from numpy import ndarray
 import pathlib
 import shutil
 import os
@@ -14,57 +16,53 @@ size_type = np.uint8
 debug_mode = -1
 
 class BoundaryType(Enum):
-    DISPLACEMENT = "DISPLACEMENT"
-    PRESSURE = "PRESSURE"
-    SLIDE = "SLIDE"
+    DISPLACEMENT = auto()
+    PRESSURE = auto()
+    SLIDE = auto()
 
 
 class ShapeType(Enum):
-    SEGMENT = "SEGMENT"
-    TRIANGLE = "TRIANGLE"
+    SEGMENT = auto()
+    TRIANGLE = auto()
 
 
 class QuadratureType(Enum):
-    GAUSS = "GAUSS"
+    GAUSS = auto()
 
 
 class BasisType(Enum):
-    MONOMIAL = "MONOMIAL"
+    MONOMIAL = auto()
 
 
 class ElementType(Enum):
-    HDG_HIGH = "HDG_HIGH"
-    HHO_HIGH = "HHO_HIGH"
-    HDG_EQUAL = "HDG_EQUAL"
-    HHO_EQUAL = "HHO_EQUAL"
-    HDG_LOW = "HDG_LOW"
-    HHO_LOW = "HHO_LOW"
+    HDG_LOW = auto()
+    HDG_EQUAL = auto()
+    HDG_HIGH = auto()
+    HHO_LOW = auto()
+    HHO_EQUAL = auto()
+    HHO_HIGH = auto()
 
 
 class FieldType(Enum):
-    SCALAR = "SCALAR"
-    VECTOR = "VECTOR"
-    DISPLACEMENT = "DISPLACEMENT"
-    DISPLACEMENT_PLANE_STRAIN = "DISPLACEMENT_PLANE_STRAIN"
-    DISPLACEMENT_PLANE_STRESS = "DISPLACEMENT_PLANE_STRAIN"
+    DISPLACEMENT_LARGE_STRAIN = auto()
+    DISPLACEMENT_SMALL_STRAIN = auto()
+    DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN = auto()
+    DISPLACEMENT_SMALL_STRAIN_PLANE_STRAIN = auto()
+    DISPLACEMENT_LARGE_STRAIN_PLANE_STRESS = auto()
+    DISPLACEMENT_SMALL_STRAIN_PLANE_STRESS = auto()
 
+class FluxType(Enum):
+    STRESS_PK1 = auto()
+    STRESS_CAUCHY = auto()
 
-class StrainTempType(Enum):
-    SMALL_STRAIN = ("SMALL_STRAIN",)
-    FINITE_STRAIN = ("FINITE_STRAIN",)
-
-class StressType(Enum):
-    PIOLA_KIRCHOFF_1 = "PK1"
-    CAUCHY = "CAUCHY"
-
-class StrainType(Enum):
-    DISPLACEMENT_TRANSFORMATION_GRADIENT = "F"
-    DISPLACEMENT_SYMMETRIC_GRADIENT = "GRAD_SYM_U"
+class GradType(Enum):
+    DISPLACEMENT_TRANSFORMATION_GRADIENT = auto()
+    DISPLACEMENT_SMALL_STRAIN = auto()
 
 
 class DerivationType(Enum):
-    SYMMETRIC = "SYMMETRIC"
-    FULL = "FULL"
+    SYMMETRIC = auto()
+    REGULAR = auto()
 
 def get_project_path():
     return pathlib.Path(__file__).parent.parent.absolute()
