@@ -1,5 +1,6 @@
 import h2o.geometry.shapes.shape_segment as isegment
 import h2o.geometry.shapes.shape_triangle as itriangle
+import h2o.geometry.shapes.shape_quadrangle as iquadrangle
 import h2o.quadratures.quadrature as quad
 from h2o.h2o import *
 
@@ -36,6 +37,15 @@ def _check_shape(shape_type: ShapeType, shape_vertices: ndarray):
     elif shape_type == ShapeType.TRIANGLE:
         if not shape_vertices.shape[1] == 3:
             raise ValueError("wrong number of vertices")
+    elif shape_type == ShapeType.QUADRANGLE:
+        if not shape_vertices.shape[1] == 4:
+            raise ValueError("wrong number of vertices")
+    elif shape_type == ShapeType.TETRAHEDRON:
+        if not shape_vertices.shape[1] == 4:
+            raise ValueError("wrong number of vertices")
+    elif shape_type == ShapeType.HEXAHEDRON:
+        if not shape_vertices.shape[1] == 8:
+            raise ValueError("wrong number of vertices")
     else:
         raise KeyError("unsupported shape")
 
@@ -65,6 +75,10 @@ class Shape:
             self.centroid = itriangle.get_triangle_centroid(shape_vertices)
             self.volume = itriangle.get_triangle_volume(shape_vertices)
             self.diameter = itriangle.get_triangle_diameter(shape_vertices)
+        elif shape_type == ShapeType.QUADRANGLE:
+            self.centroid = iquadrangle.get_quadrangle_centroid(shape_vertices)
+            self.volume = iquadrangle.get_quadrangle_volume(shape_vertices)
+            self.diameter = iquadrangle.get_quadrangle_diameter(shape_vertices)
 
     def get_quadrature_points(
         self, integration_order: int, quadrature_type: QuadratureType = QuadratureType.GAUSS
@@ -95,8 +109,11 @@ class Shape:
         Returns:
 
         """
+        # quadrature_weights = quad.get_shape_quadrature_weights(
+        #     self.type, self.volume, integration_order, quadrature_type=quadrature_type
+        # )
         quadrature_weights = quad.get_shape_quadrature_weights(
-            self.type, self.volume, integration_order, quadrature_type=quadrature_type
+            self.type, self.vertices, integration_order, quadrature_type=quadrature_type
         )
         return quadrature_weights
 

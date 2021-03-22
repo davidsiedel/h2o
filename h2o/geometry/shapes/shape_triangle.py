@@ -1,8 +1,6 @@
-import numpy as np
-from numpy import ndarray
-from typing import List, Callable, Dict
-
 from h2o.geometry.geometry import *
+import h2o.quadratures.gauss.gauss_triangle as gauss_triangle
+from h2o.quadratures.gauss.gauss_triangle import QuadratureItem
 
 
 def get_triangle_barycenter(vertices: ndarray) -> ndarray:
@@ -32,7 +30,8 @@ def get_triangle_edges(vertices: ndarray) -> ndarray:
     e_0 = vertices[:, 1] - vertices[:, 0]
     e_1 = vertices[:, 2] - vertices[:, 1]
     e_2 = vertices[:, 0] - vertices[:, 2]
-    edges = np.array([e_0, e_1, e_2])
+    # edges = np.array([e_0, e_1, e_2])
+    edges = np.array([e_0, e_1, e_2]).T
     return edges
 
 
@@ -46,7 +45,15 @@ def get_triangle_diameter(vertices: ndarray) -> float:
 
     """
     edges = get_triangle_edges(vertices)
-    triangle_diameter = max([get_euclidean_norm(e) for e in edges])
+    number_of_edges = edges.shape[1]
+    triangle_diameter = 0.0
+    for i in range(number_of_edges):
+        diam = np.linalg.norm(edges[:, i])
+        if diam > triangle_diameter:
+            triangle_diameter = diam
+    # triangle_diameter = np.max([np.linalg.norm(e) for e in edges])
+    # triangle_diameter = np.max([np.linalg.norm(edges[:, i]) for i in range(number_of_edges)])
+    # triangle_diameter = max([get_euclidean_norm(e) for e in edges])
     return triangle_diameter
 
 
@@ -60,8 +67,9 @@ def get_triangle_volume(vertices: ndarray) -> float:
 
     """
     edges = get_triangle_edges(vertices)
-    p = get_triangle_reference_frame_transformation_matrix(vertices)
-    e0 = (p @ edges.T).T
+    p = get_triangle_rotation_matrix(vertices)
+    # e0 = (p @ edges.T).T
+    e0 = p @ edges
     triangle_volume = np.abs(1.0 / 2.0 * np.linalg.det(e0[0:2, 0:2]))
     return triangle_volume
 
@@ -79,7 +87,7 @@ def get_triangle_centroid(vertices: ndarray) -> ndarray:
     return triangle_centroid
 
 
-def get_triangle_reference_frame_transformation_matrix(vertices: ndarray) -> ndarray:
+def get_triangle_rotation_matrix(vertices: ndarray) -> ndarray:
     """
 
     Args:
@@ -106,3 +114,63 @@ def get_triangle_reference_frame_transformation_matrix(vertices: ndarray) -> nda
     else:
         raise EnvironmentError("wrong")
     return triangle_reference_frame_transformation_matrix
+
+
+def get_triangle_quadrature_weights(vertices: ndarray, integration_order: int) -> ndarray:
+    """
+
+    Args:
+        vertices:
+        integration_order:
+
+    Returns:
+
+    """
+    rotation_matrix = get_triangle_rotation_matrix(vertices)
+    quadrature_size = gauss_triangle.get_number_of_quadrature_points_in_triangle(integration_order)
+    quadrature_reference_weights = gauss_triangle.get_reference_triangle_quadrature_item(
+        integration_order, QuadratureItem.WEIGHTS
+    )
+    jacobian_weights = np.zeros((quadrature_size,), dtype=real)
+    jacobian_operators = gauss_triangle.get_reference_triangle_quadrature_item(
+        integration_order, QuadratureItem.JACOBIAN
+    )
+    for i, jacobian_operator in enumerate(jacobian_operators):
+        jacobian = np.zeros((2, 2), dtype=real)
+        jacobian[0, 0] = jacobian_operator[0] @ vertices[0, :]
+        jacobian[0, 1] = jacobian_operator[1] @ vertices[0, :]
+        jacobian[1, 0] = jacobian_operator[2] @ vertices[1, :]
+        jacobian[1, 1] = jacobian_operator[3] @ vertices[1, :]
+        jacobian_weights[i] = np.linalg.det(jacobian)
+    quadrature_weights = quadrature_reference_weights * jacobian_weights
+    return quadrature_weights
+
+
+def get_triangle_quadrature_points(vertices: ndarray, integration_order: int) -> ndarray:
+    """
+
+    Args:
+        vertices:
+        integration_order:
+
+    Returns:
+
+    """
+    quadrature_reference_points = gauss_triangle.get_reference_triangle_quadrature_item(
+        integration_order, QuadratureItem.POINTS
+    )
+    quadrature_points = (quadrature_reference_points @ vertices.T).T
+    return quadrature_points
+
+
+def get_triangle_quadrature_size(integration_order: int) -> int:
+    """
+
+    Args:
+        integration_order:
+
+    Returns:
+
+    """
+    quadrature_size = gauss_triangle.get_number_of_quadrature_points_in_triangle(integration_order)
+    return quadrature_size

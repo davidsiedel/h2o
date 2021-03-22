@@ -56,6 +56,27 @@ def get_segment_centroid(vertices: ndarray) -> ndarray:
     return centroid
 
 
+def get_segement_rotation_matrix(vertices: ndarray) -> ndarray:
+    """
+
+    Args:
+        vertices:
+
+    Returns: the rotation matrix of the segment if it is a face in a 2-dimensional euclidean space, or the identity
+    matrix otherwise
+
+    """
+    euclidean_dimension = vertices.shape[0]
+    if euclidean_dimension == 1:
+        mapping_matrix = np.eye(1)
+    elif euclidean_dimension == 2:
+        e_0 = vertices[:, 1] - vertices[:, 0]
+        e_0 = e_0 / np.linalg.norm(e_0)
+        e_1 = np.array([e_0[1], -e_0[0]])
+        mapping_matrix = np.array([e_0, e_1])
+    return mapping_matrix
+
+
 # def get_segment_reference_frame_transformation_matrix(vertices: ndarray) -> ndarray:
 #     """
 #

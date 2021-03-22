@@ -24,6 +24,9 @@ class BoundaryType(Enum):
 class ShapeType(Enum):
     SEGMENT = auto()
     TRIANGLE = auto()
+    QUADRANGLE = auto()
+    TETRAHEDRON = auto()
+    HEXAHEDRON = auto()
 
 
 class QuadratureType(Enum):

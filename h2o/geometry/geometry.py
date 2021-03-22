@@ -1,6 +1,3 @@
-import numpy as np
-from numpy import ndarray
-
 from h2o.h2o import *
 
 
@@ -23,14 +20,14 @@ def get_domain_barycenter(vertices: ndarray) -> ndarray:
     return shape_barycenter
 
 
-def get_euclidean_norm(edge: ndarray) -> float:
-    """
-
-    Args:
-        edge:
-
-    Returns:
-
-    """
-    euclidean_norm = np.sqrt(np.sum(edge ** 2))
-    return euclidean_norm
+# def get_euclidean_norm(edge: ndarray) -> float:
+#     """
+#
+#     Args:
+#         edge:
+#
+#     Returns:
+#
+#     """
+#     euclidean_norm = np.sqrt(np.sum(edge ** 2))
+#     return euclidean_norm
