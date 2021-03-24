@@ -10,12 +10,12 @@ def get_number_of_quadrature_points_in_segment(integration_order: int) -> int:
     Returns:
 
     """
-    qw = get_segment_quadrature(integration_order, QuadratureItem.WEIGHTS)
+    qw = get_reference_segment_quadrature_item(integration_order, QuadratureItem.WEIGHTS)
     number_of_quadrature_points_in_segment = len(qw)
     return number_of_quadrature_points_in_segment
 
 
-def get_segment_quadrature(integration_order: int, quadrature_item: QuadratureItem) -> ndarray:
+def get_reference_segment_quadrature_item(integration_order: int, quadrature_item: QuadratureItem) -> ndarray:
     """
 
     Args:

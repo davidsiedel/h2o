@@ -10,12 +10,12 @@ def get_number_of_quadrature_points_in_quadrangle(integration_order: int) -> int
     Returns:
 
     """
-    qw = get_quadrangle_quadrature(integration_order, QuadratureItem.WEIGHTS)
+    qw = get_reference_quadrangle_quadrature_item(integration_order, QuadratureItem.WEIGHTS)
     number_of_quadrature_points_in_triangle = len(qw)
     return number_of_quadrature_points_in_triangle
 
 
-def get_quadrangle_quadrature(integration_order: int, quadrature_item: QuadratureItem) -> ndarray:
+def get_reference_quadrangle_quadrature_item(integration_order: int, quadrature_item: QuadratureItem) -> ndarray:
     """
 
     QUADRATURE RULE BASED ON QUADPY scheme = quadpy.t2.get_good_scheme(integration_order)

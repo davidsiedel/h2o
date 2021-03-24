@@ -4,21 +4,21 @@ import h2o.geometry.shapes.shape_quadrangle as iquadrangle
 import h2o.quadratures.quadrature as quad
 from h2o.h2o import *
 
-def get_rotation_matrix(face_shape_type: ShapeType, face_vertices: ndarray) -> ndarray:
-    """
-    Args:
-        face_shape_type:
-        face_vertices:
-    Returns:
-    """
-    if face_shape_type == ShapeType.SEGMENT:
-        e_0 = face_vertices[:, 1] - face_vertices[:, 0]
-        e_0 = e_0 / np.linalg.norm(e_0)
-        e_1 = np.array([e_0[1], -e_0[0]])
-        mapping_matrix = np.array([e_0, e_1])
-    else:
-        raise KeyError("NO")
-    return mapping_matrix
+# def get_rotation_matrix(face_shape_type: ShapeType, face_vertices: ndarray) -> ndarray:
+#     """
+#     Args:
+#         face_shape_type:
+#         face_vertices:
+#     Returns:
+#     """
+#     if face_shape_type == ShapeType.SEGMENT:
+#         e_0 = face_vertices[:, 1] - face_vertices[:, 0]
+#         e_0 = e_0 / np.linalg.norm(e_0)
+#         e_1 = np.array([e_0[1], -e_0[0]])
+#         mapping_matrix = np.array([e_0, e_1])
+#     else:
+#         raise KeyError("NO")
+#     return mapping_matrix
 
 
 def _check_shape(shape_type: ShapeType, shape_vertices: ndarray):

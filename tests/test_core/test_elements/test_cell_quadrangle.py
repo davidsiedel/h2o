@@ -18,7 +18,11 @@ class TestCellQuadrangle(TestCase):
 
         euclidean_dimension = 2
         polynomial_orders = [1, 2, 3]
-        element_types = [ElementType.HDG_LOW, ElementType.HDG_EQUAL, ElementType.HDG_HIGH]
+        element_types = [
+            ElementType.HDG_LOW,
+            ElementType.HDG_EQUAL,
+            ElementType.HDG_HIGH,
+        ]
         for polynomial_order in polynomial_orders:
             for element_type in element_types:
                 # --------------------------------------------------------------------------------------------------------------
@@ -51,7 +55,7 @@ class TestCellQuadrangle(TestCase):
                 # DEFINE MONOMIAL VALUES COMPUTATION
                 # --------------------------------------------------------------------------------------------------------------
                 def test_function(
-                    polynomial_ord: int, point: ndarray, centroid: ndarray, diameter: float, coefficients: ndarray
+                    polynomial_ord: int, point: ndarray, centroid: ndarray, diameter: float, coefficients: ndarray,
                 ) -> float:
                     basis = Monomial(polynomial_ord, euclidean_dimension)
                     value = 0.0
@@ -160,9 +164,9 @@ class TestCellQuadrangle(TestCase):
                         order_1 = basis_1.polynomial_order
                         for _i in range(euclidean_dimension):
                             for _j in range(euclidean_dimension):
-                                mass_mat = np.zeros((basis_0.dimension, basis_1.dimension), dtype=real)
-                                stif_mat = np.zeros((basis_0.dimension, basis_1.dimension), dtype=real)
-                                advc_mat = np.zeros((basis_0.dimension, basis_1.dimension), dtype=real)
+                                mass_mat = np.zeros((basis_0.dimension, basis_1.dimension), dtype=real,)
+                                stif_mat = np.zeros((basis_0.dimension, basis_1.dimension), dtype=real,)
+                                advc_mat = np.zeros((basis_0.dimension, basis_1.dimension), dtype=real,)
                                 for _qc in range(cell_quadrature_size):
                                     _x_qc = cell_quadrature_points[:, _qc]
                                     _w_qc = cell_quadrature_weights[_qc]
@@ -186,25 +190,43 @@ class TestCellQuadrangle(TestCase):
                                     order_0, x, x_c, h_c, coef_0
                                 ) * test_function_derivative(order_1, x, x_c, h_c, _j, coef_1)
                                 mass_integral_check = scheme.integrate(
-                                    f_mass_check, [[vertices[:, 0], vertices[:, 1]], [vertices[:, 3], vertices[:, 2]]]
+                                    f_mass_check, [[vertices[:, 0], vertices[:, 1]], [vertices[:, 3], vertices[:, 2]],],
                                 )
                                 stif_integral_check = scheme.integrate(
-                                    f_stif_check, [[vertices[:, 0], vertices[:, 1]], [vertices[:, 3], vertices[:, 2]]]
+                                    f_stif_check, [[vertices[:, 0], vertices[:, 1]], [vertices[:, 3], vertices[:, 2]],],
                                 )
                                 advc_integral_check = scheme.integrate(
-                                    f_advc_check, [[vertices[:, 0], vertices[:, 1]], [vertices[:, 3], vertices[:, 2]]]
+                                    f_advc_check, [[vertices[:, 0], vertices[:, 1]], [vertices[:, 3], vertices[:, 2]],],
                                 )
                                 rtol = 1.0e-15
                                 atol = 1.0e-15
-                                print('MASS INTEGRAL CHECK | ORDER : {} | ELEM : {}'.format(polynomial_order, element_type))
+                                print(
+                                    "MASS INTEGRAL CHECK | ORDER : {} | ELEM : {}".format(
+                                        polynomial_order, element_type
+                                    )
+                                )
                                 print("- QUADPY : {}".format(mass_integral_check))
                                 print("- H2O : {}".format(mass_integral))
-                                np.testing.assert_allclose(mass_integral_check, mass_integral, rtol=rtol, atol=atol)
-                                print('STIFFNESS INTEGRAL CHECK | ORDER : {} | ELEM : {}'.format(polynomial_order, element_type))
+                                np.testing.assert_allclose(
+                                    mass_integral_check, mass_integral, rtol=rtol, atol=atol,
+                                )
+                                print(
+                                    "STIFFNESS INTEGRAL CHECK | ORDER : {} | ELEM : {}".format(
+                                        polynomial_order, element_type
+                                    )
+                                )
                                 print("- QUADPY : {}".format(stif_integral_check))
                                 print("- H2O : {}".format(stif_integral))
-                                np.testing.assert_allclose(stif_integral_check, stif_integral, rtol=rtol, atol=atol)
-                                print('ADVECTION INTEGRAL CHECK | ORDER : {} | ELEM : {}'.format(polynomial_order, element_type))
+                                np.testing.assert_allclose(
+                                    stif_integral_check, stif_integral, rtol=rtol, atol=atol,
+                                )
+                                print(
+                                    "ADVECTION INTEGRAL CHECK | ORDER : {} | ELEM : {}".format(
+                                        polynomial_order, element_type
+                                    )
+                                )
                                 print("- QUADPY : {}".format(advc_integral_check))
                                 print("- H2O : {}".format(advc_integral))
-                                np.testing.assert_allclose(advc_integral_check, advc_integral, rtol=rtol, atol=atol)
+                                np.testing.assert_allclose(
+                                    advc_integral_check, advc_integral, rtol=rtol, atol=atol,
+                                )

@@ -1,6 +1,8 @@
 from h2o.geometry.geometry import *
-from scipy.special import binom
-from h2o.geometry.shapes.shape_triangle import get_triangle_edges
+import h2o.geometry.shapes.shape_triangle as shape_triangle
+
+# import h2o.quadratures.gauss.gauss_triangle as gauss_triangle
+# from h2o.quadratures.gauss.gauss_triangle import QuadratureItem
 
 
 def get_polygon_barycenter(vertices: ndarray) -> ndarray:
@@ -12,48 +14,55 @@ def get_polygon_barycenter(vertices: ndarray) -> ndarray:
     Returns:
 
     """
-    return get_domain_barycenter(vertices)
+    return get_shape_barycenter(vertices)
 
 
-# def get_triangle_edges(vertices: ndarray) -> ndarray:
-#     """
-#
-#     Args:
-#         vertices:
-#
-#     Returns:
-#
-#     """
-#     # e_0 = vertices[1, :] - vertices[0, :]
-#     # e_1 = vertices[2, :] - vertices[1, :]
-#     # e_2 = vertices[0, :] - vertices[2, :]
-#     e_0 = vertices[:, 1] - vertices[:, 0]
-#     e_1 = vertices[:, 2] - vertices[:, 1]
-#     e_2 = vertices[:, 0] - vertices[:, 2]
-#     edges = np.array([e_0, e_1, e_2])
-#     return edges
+def get_polygon_edges(vertices: ndarray) -> ndarray:
+    """
+
+    Args:
+        vertices:
+
+    Returns:
+
+    """
+    return get_shape_edges(vertices)
+
 
 def get_polygon_partition(vertices: ndarray) -> ndarray:
+    """
+
+    Args:
+        vertices:
+
+    Returns:
+
+    """
     number_of_vertices = vertices.shape[1]
     euclidean_dimension = vertices.shape[0]
     polygon_centroid = get_polygon_centroid(vertices)
-    # simplicial_sub_domains = []
-    simplicial_sub_domains = np.zeros((number_of_vertices, euclidean_dimension, 3), dtype=real)
+    polygon_partition = np.zeros((number_of_vertices, euclidean_dimension, 3), dtype=real)
     for i in range(number_of_vertices):
-        simplicial_sub_domains[i] = np.array(
-            [
-                vertices[:, i - 1],
-                vertices[:, i],
-                polygon_centroid,
-            ], dtype=real
-        ).T
-        # sub_domain_vertices = [
-        #     vertices[:, i - 1],
-        #     vertices[:, i],
-        #     polygon_centroid,
-        # ]
-        # simplicial_sub_domains.append(np.array(sub_domain_vertices))
-    return simplicial_sub_domains
+        polygon_partition[i] = np.array([vertices[:, i - 1], vertices[:, i], polygon_centroid], dtype=real).T
+    return polygon_partition
+
+
+def check_polygon_vertices_consistency(vertices: ndarray):
+    """
+
+    Args:
+        vertices:
+    """
+    number_of_vertices = vertices.shape[1]
+    euclidean_dimension = vertices.shape[0]
+    if number_of_vertices < 5:
+        raise GeometryError("a polygon is defined by more than 4 points, not {}".format(number_of_vertices))
+    triangles = get_polygon_partition(vertices)
+    for triangle_vertices in triangles:
+        # shape_triangle.check_triangle_vertices_consistency(triangle_vertices)
+        check_points_non_alignment(triangle_vertices)
+    if euclidean_dimension == 3:
+        check_points_coplanar(vertices)
 
 
 def get_polygon_diameter(vertices: ndarray) -> float:
@@ -66,24 +75,18 @@ def get_polygon_diameter(vertices: ndarray) -> float:
 
     """
     number_of_vertices = vertices.shape[1]
-    # number_of_combinations = binom(number_of_vertices, 2)
-    # --------------------------------------------------------------------------------------------------------------
-    # combinations_count = 0
-    # lengths = []
     polygon_diameter = 0.0
     for i in range(number_of_vertices):
         v0 = vertices[:, i]
         for j in range(number_of_vertices):
             v1 = vertices[:, j]
-            # if not i == j and not permutation_count == number_of_combinations:
             if not i == j:
                 edge = v1 - v0
                 edge_length = np.linalg.norm(edge)
                 if edge_length > polygon_diameter:
                     polygon_diameter = edge_length
-                # lengths.append(np.sqrt((e[1] + e[0]) ** 2))
-    # polygon_diameter = max(lengths)
     return polygon_diameter
+
 
 def get_lace(vertices: ndarray, index: int) -> float:
     """
@@ -98,6 +101,7 @@ def get_lace(vertices: ndarray, index: int) -> float:
     lace = vertices[0, index - 1] * vertices[1, index] - vertices[0, index] * vertices[1, index - 1]
     return lace
 
+
 def get_polygon_volume(vertices: ndarray) -> float:
     """
 
@@ -108,22 +112,29 @@ def get_polygon_volume(vertices: ndarray) -> float:
 
     """
     number_of_vertices = vertices.shape[1]
-    # shoe_lace_matrix = []
     lace_sum = 0.0
     for i in range(number_of_vertices):
-        # lace = vertices[i - 1][0] * vertices[i][1] - vertices[i][0] * vertices[i - 1][1]
-        # lace = vertices[0, i - 1] * vertices[1, i] - vertices[0, i] * vertices[1, i - 1]
         lace = get_lace(vertices, i)
-        # shoe_lace_matrix.append(lace)
         lace_sum += lace
-    # polygon_volume = np.abs(1.0 / 2.0 * np.sum(shoe_lace_matrix))
     polygon_volume = np.abs(1.0 / 2.0 * lace_sum)
-    # shoe_lace_matrix = []
-    # for i in range(number_of_vertices):
-    #     edge_matrix = np.array([vertices[i - 1], vertices[i]])
-    #     lace = np.linalg.det(edge_matrix.T)
-    #     shoe_lace_matrix.append(lace)
-    # polygon_volume = np.abs(1.0 / 2.0 * np.sum(shoe_lace_matrix))
+    return polygon_volume
+
+
+def get_polygon_signed_volume(vertices: ndarray) -> float:
+    """
+
+    Args:
+        vertices:
+
+    Returns:
+
+    """
+    number_of_vertices = vertices.shape[1]
+    lace_sum = 0.0
+    for i in range(number_of_vertices):
+        lace = get_lace(vertices, i)
+        lace_sum += lace
+    polygon_volume = 1.0 / 2.0 * lace_sum
     return polygon_volume
 
 
@@ -137,29 +148,37 @@ def get_polygon_centroid(vertices: ndarray) -> ndarray:
 
     """
     number_of_vertices = vertices.shape[1]
-    polygon_volume = get_polygon_volume(vertices)
-    # centroid_matrix_x = []
+    euclidean_dimension = vertices.shape[0]
+    if euclidean_dimension == 2:
+        vprim = vertices
+    elif euclidean_dimension == 3:
+        rot = get_polygon_rotation_matrix(vertices)
+        vprim = (rot @ vertices)[:-1, :]
+    else:
+        raise GeometryError("no")
+    # polygon_volume = get_polygon_volume(vprim)
+    polygon_signed_volume = get_polygon_signed_volume(vprim)
     cx_sum = 0.0
     for i in range(number_of_vertices):
-        # centroid_matrix_x.append(
-        #     (vertices[i - 1][0] + vertices[i][0])
-        #     * (vertices[i - 1][0] * vertices[i][1] - vertices[i][0] * vertices[i - 1][1])
-        # )
-        cx_sum += (vertices[0, i - 1] + vertices[0, i]) * get_lace(vertices, i)
-    # polygon_centroid_x = 1.0 / (6.0 * polygon_volume) * np.sum(centroid_matrix_x)
-    polygon_centroid_x = 1.0 / (6.0 * polygon_volume) * cx_sum
-    # centroid_matrix_y = []
+        cx_sum += (vprim[0, i - 1] + vprim[0, i]) * get_lace(vprim, i)
+    polygon_centroid_x = 1.0 / (6.0 * polygon_signed_volume) * cx_sum
     cy_sum = 0.0
     for i in range(number_of_vertices):
-        # centroid_matrix_y.append(
-        #     (vertices[i - 1][1] + vertices[i][1])
-        #     * (vertices[i - 1][0] * vertices[i][1] - vertices[i][0] * vertices[i - 1][1])
-        # )
-        cy_sum += (vertices[1, i - 1] + vertices[1, i]) * get_lace(vertices, i)
-    # polygon_centroid_y = 1.0 / (6.0 * polygon_volume) * np.sum(centroid_matrix_y)
-    polygon_centroid_y = 1.0 / (6.0 * polygon_volume) * cy_sum
+        cy_sum += (vprim[1, i - 1] + vprim[1, i]) * get_lace(vprim, i)
+    polygon_centroid_y = 1.0 / (6.0 * polygon_signed_volume) * cy_sum
     polygon_centroid = np.array([polygon_centroid_x, polygon_centroid_y])
-    return polygon_centroid
+    if euclidean_dimension == 3:
+        polycent = np.zeros((euclidean_dimension,), dtype=real)
+        polycent[:2] = polygon_centroid
+        rot = get_polygon_rotation_matrix(vertices)
+        h_t = (rot @ vertices)
+        h = h_t[2, 0]
+        polycent[2] = h
+        polycent_fin = np.linalg.inv(rot) @ polycent
+        return polycent_fin
+    else:
+        return polygon_centroid
+    # return polygon_centroid
 
 
 def get_polygon_rotation_matrix(vertices: ndarray) -> ndarray:
@@ -171,33 +190,86 @@ def get_polygon_rotation_matrix(vertices: ndarray) -> ndarray:
     Returns:
 
     """
-    polygon_partition = get_polygon_partition(vertices)
+    tri = vertices[:, :-1]
+    p = shape_triangle.get_triangle_rotation_matrix(tri)
+    return p
+
+
+def get_polygon_quadrature_size(
+    vertices: ndarray, integration_order: int, quadrature_type: QuadratureType = QuadratureType.GAUSS
+) -> int:
+    """
+
+    Args:
+        vertices:
+        integration_order:
+        quadrature_type:
+
+    Returns:
+
+    """
+    triangle_quadrature_size = shape_triangle.get_triangle_quadrature_size(
+        integration_order, quadrature_type=quadrature_type
+    )
+    number_of_vertices = vertices.shape[1]
+    polygon_quadrature_size = number_of_vertices * triangle_quadrature_size
+    return polygon_quadrature_size
+
+
+def get_polygon_quadrature_points(
+    vertices: ndarray, integration_order: int, quadrature_type: QuadratureType = QuadratureType.GAUSS
+) -> ndarray:
+    """
+
+    Args:
+        vertices:
+        integration_order:
+        quadrature_type:
+
+    Returns:
+
+    """
     euclidean_dimension = vertices.shape[0]
-    for triangle_vertices in polygon_partition:
-        triangle_edges = get_triangle_edges(triangle_vertices)
-        e0 = triangle_edges[:, 0] / np.linalg.norm(triangle_edges[:, 0])
-        e1 = triangle_edges[:, 1] / np.linalg.norm(triangle_edges[:, 1])
-        # cos_check = np.tensordot(triangle_edges[:, 0], triangle_edges[:, 1], axes=2)
-        cos_check = triangle_edges[:, 0] @ triangle_edges[:, 1]
-        if cos_check != 1.0 and cos_check != -1.0:
-            # euclidean_dimension = vertices.shape[0]
-            if euclidean_dimension == 3:
-                # e_0 = vertices[0] - vertices[-1]
-                # e_0 = vertices[2] - vertices[0]
-                e_0 = triangle_vertices[:, 2] - triangle_vertices[:, 0]
-                e_0 = e_0 / np.linalg.norm(e_0)
-                # e_t = vertices[1] - vertices[-1]
-                # e_t = vertices[1] - vertices[0]
-                e_t = triangle_vertices[:, 1] - triangle_vertices[:, 0]
-                e_t = e_t / np.linalg.norm(e_t)
-                e_2 = np.cross(e_0, e_t)
-                e_1 = np.cross(e_2, e_0)
-                triangle_reference_frame_transformation_matrix = np.array([e_0, e_1, e_2])
-            elif euclidean_dimension == 2:
-                triangle_reference_frame_transformation_matrix = np.eye(2)
-            else:
-                raise EnvironmentError("wrong")
-            return triangle_reference_frame_transformation_matrix
-        else:
-            pass
-    raise ValueError("all points in the polygon are aligned")
+    quadrature_size = get_polygon_quadrature_size(vertices, integration_order)
+    quadrature_points = np.zeros((euclidean_dimension, quadrature_size), dtype=real)
+    triangles = get_polygon_partition(vertices)
+    triangle_quadrature_size = shape_triangle.get_triangle_quadrature_size(
+        integration_order, quadrature_type=quadrature_type
+    )
+    for i, triangle in enumerate(triangles):
+        col0 = i * triangle_quadrature_size
+        col1 = (i + 1) * triangle_quadrature_size
+        triangle_quadrature_points = shape_triangle.get_triangle_quadrature_points(
+            triangle, integration_order, quadrature_type=quadrature_type
+        )
+        quadrature_points[:, col0:col1] = triangle_quadrature_points
+    return quadrature_points
+
+
+def get_polygon_quadrature_weights(
+    vertices: ndarray, integration_order: int, quadrature_type: QuadratureType = QuadratureType.GAUSS
+) -> ndarray:
+    """
+
+    Args:
+        vertices:
+        integration_order:
+        quadrature_type:
+
+    Returns:
+
+    """
+    polygon_quadrature_size = get_polygon_quadrature_size(vertices, integration_order)
+    quadrature_weights = np.zeros((polygon_quadrature_size,), dtype=real)
+    triangles = get_polygon_partition(vertices)
+    triangle_quadrature_size = shape_triangle.get_triangle_quadrature_size(
+        integration_order, quadrature_type=quadrature_type
+    )
+    for i, triangle in enumerate(triangles):
+        col0 = i * triangle_quadrature_size
+        col1 = (i + 1) * triangle_quadrature_size
+        triangle_quadrature_weights = shape_triangle.get_triangle_quadrature_weights(
+            triangle, integration_order, quadrature_type=quadrature_type
+        )
+        quadrature_weights[col0:col1] = triangle_quadrature_weights
+    return quadrature_weights

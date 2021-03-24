@@ -27,7 +27,7 @@ def get_quadrature_item(
     if quadrature_type == QuadratureType.GAUSS:
         if shape_type == ShapeType.SEGMENT:
             if quadrature_item in [QuadratureItem.POINTS, QuadratureItem.WEIGHTS, QuadratureItem.JACOBIAN]:
-                return gauss_segment.get_segment_quadrature(integration_order, quadrature_item)
+                return gauss_segment.get_reference_segment_quadrature_item(integration_order, quadrature_item)
             elif quadrature_item == QuadratureItem.SIZE:
                 return gauss_segment.get_number_of_quadrature_points_in_segment(integration_order)
         elif shape_type == ShapeType.TRIANGLE:
@@ -37,7 +37,7 @@ def get_quadrature_item(
                 return gauss_triangle.get_number_of_quadrature_points_in_triangle(integration_order)
         elif shape_type == ShapeType.QUADRANGLE:
             if quadrature_item in [QuadratureItem.POINTS, QuadratureItem.WEIGHTS, QuadratureItem.JACOBIAN]:
-                return gauss_quadrangle.get_quadrangle_quadrature(integration_order, quadrature_item)
+                return gauss_quadrangle.get_reference_quadrangle_quadrature_item(integration_order, quadrature_item)
             elif quadrature_item == QuadratureItem.SIZE:
                 return gauss_quadrangle.get_number_of_quadrature_points_in_quadrangle(integration_order)
         elif shape_type == ShapeType.TETRAHEDRON:
@@ -108,7 +108,7 @@ def get_shape_quadrature_weights(
     )
     wgts = np.zeros((quadrature_size,), dtype=real)
     if shape_type == ShapeType.SEGMENT:
-        rotation_matrix = shape_segment.get_segement_rotation_matrix(shape_vertices)
+        rotation_matrix = shape_segment.get_segment_rotation_matrix(shape_vertices)
         projected_shape_vertices = (rotation_matrix @ shape_vertices)[:-1]
         # rotated_shape_vertices_2 = projected_shape_vertices[:-1]
         for i, jaco in enumerate(quadrature_jacobian):
