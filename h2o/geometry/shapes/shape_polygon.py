@@ -102,24 +102,6 @@ def get_lace(vertices: ndarray, index: int) -> float:
     return lace
 
 
-def get_polygon_volume(vertices: ndarray) -> float:
-    """
-
-    Args:
-        vertices:
-
-    Returns:
-
-    """
-    number_of_vertices = vertices.shape[1]
-    lace_sum = 0.0
-    for i in range(number_of_vertices):
-        lace = get_lace(vertices, i)
-        lace_sum += lace
-    polygon_volume = np.abs(1.0 / 2.0 * lace_sum)
-    return polygon_volume
-
-
 def get_polygon_signed_volume(vertices: ndarray) -> float:
     """
 
@@ -136,6 +118,24 @@ def get_polygon_signed_volume(vertices: ndarray) -> float:
         lace_sum += lace
     polygon_volume = 1.0 / 2.0 * lace_sum
     return polygon_volume
+
+
+def get_polygon_volume(vertices: ndarray) -> float:
+    """
+
+    Args:
+        vertices:
+
+    Returns:
+
+    """
+    # number_of_vertices = vertices.shape[1]
+    # lace_sum = 0.0
+    # for i in range(number_of_vertices):
+    #     lace = get_lace(vertices, i)
+    #     lace_sum += lace
+    # polygon_volume = np.abs(1.0 / 2.0 * lace_sum)
+    return np.abs(get_polygon_signed_volume(vertices))
 
 
 def get_polygon_centroid(vertices: ndarray) -> ndarray:
@@ -156,7 +156,6 @@ def get_polygon_centroid(vertices: ndarray) -> ndarray:
         vprim = (rot @ vertices)[:-1, :]
     else:
         raise GeometryError("no")
-    # polygon_volume = get_polygon_volume(vprim)
     polygon_signed_volume = get_polygon_signed_volume(vprim)
     cx_sum = 0.0
     for i in range(number_of_vertices):

@@ -1,6 +1,6 @@
 from h2o.geometry.geometry import *
-import h2o.quadratures.gauss.gauss_hexahedron as gauss_hexahedron
-from h2o.quadratures.gauss.gauss_hexahedron import QuadratureItem
+import h2o.geometry.quadratures.gauss.gauss_hexahedron as gauss_hexahedron
+from h2o.geometry.quadratures.gauss import QuadratureItem
 
 
 def get_hexahedron_barycenter(vertices: ndarray) -> ndarray:

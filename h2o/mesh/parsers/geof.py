@@ -115,7 +115,7 @@ def get_vertices_boundaries_connectivity(geof_file_path: str) -> Dict[str, List[
     return vertices_boundaries_connectivity
 
 
-def get_cells_data(geof_file_path: str,) -> (List[List[int]], List[str]):
+def get_cells_data(geof_file_path: str,) -> (List[List[int]], List[List[List[int]]], List[ShapeType], List[str]):
     """
 
     Args:
@@ -130,6 +130,7 @@ def get_cells_data(geof_file_path: str,) -> (List[List[int]], List[str]):
     line_count = 4 + number_of_vertices_in_mesh
     number_of_cells_in_mesh = int(c[line_count].rstrip())
     cells_vertices_connectivity = []
+    cells_ordering = []
     cells_shapes = []
     cells_labels = []
     for cell_index in range(number_of_cells_in_mesh):
@@ -141,7 +142,8 @@ def get_cells_data(geof_file_path: str,) -> (List[List[int]], List[str]):
         __check_vertices_connection_item(cell_vertices_connectivity, cell_label)
         cells_shapes.append(geof_cell_library[cell_label].shape_type)
         cells_vertices_connectivity.append(cell_vertices_connectivity)
-    return cells_vertices_connectivity, cells_shapes, cells_labels
+        cells_ordering.append(geof_cell_library[cell_label].face_vertices_ordering)
+    return cells_vertices_connectivity, cells_ordering, cells_shapes, cells_labels
 
 
 def get_faces_data(

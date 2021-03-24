@@ -1,6 +1,6 @@
 from h2o.geometry.geometry import *
-import h2o.quadratures.gauss.gauss_segment as gauss_segment
-from h2o.quadratures.gauss.gauss_triangle import QuadratureItem
+import h2o.geometry.quadratures.gauss.gauss_segment as gauss_segment
+from h2o.geometry.quadratures.gauss import QuadratureItem
 
 
 def get_segment_barycenter(vertices: ndarray) -> ndarray:

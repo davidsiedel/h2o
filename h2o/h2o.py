@@ -81,6 +81,9 @@ class QuadratureError(Exception):
     pass
 
 
+class ElementError(Exception):
+    pass
+
 def get_project_path():
     return pathlib.Path(__file__).parent.parent.absolute()
 

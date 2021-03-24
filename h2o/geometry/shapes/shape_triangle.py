@@ -1,6 +1,6 @@
 from h2o.geometry.geometry import *
-import h2o.quadratures.gauss.gauss_triangle as gauss_triangle
-from h2o.quadratures.gauss.gauss_triangle import QuadratureItem
+import h2o.geometry.quadratures.gauss.gauss_triangle as gauss_triangle
+from h2o.geometry.quadratures.gauss import QuadratureItem
 
 
 def get_triangle_barycenter(vertices: ndarray) -> ndarray:

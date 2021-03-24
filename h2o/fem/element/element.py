@@ -114,7 +114,9 @@ class Element:
         _cl = self.finite_element.cell_basis_l.dimension
         _c0 = direction * _cl
         _c1 = (direction + 1) * _cl
-        vcl = self.finite_element.cell_basis_l.evaluate_function(point, self.cell.centroid, self.cell.diameter)
+        x_c = self.cell.get_centroid()
+        h_c = self.cell.get_diameter()
+        vcl = self.finite_element.cell_basis_l.evaluate_function(point, x_c, h_c)
         field_unknown_value = vcl @ element_unknown_vector[_c0:_c1]
         return field_unknown_value
 

@@ -1,6 +1,6 @@
 from h2o.geometry.geometry import *
-import h2o.quadratures.gauss.gauss_tetrahedron as gauss_tetrahedron
-from h2o.quadratures.gauss.gauss_tetrahedron import QuadratureItem
+import h2o.geometry.quadratures.gauss.gauss_tetrahedron as gauss_tetrahedron
+from h2o.geometry.quadratures.gauss import QuadratureItem
 
 
 def get_tetrahedron_barycenter(vertices: ndarray) -> ndarray:

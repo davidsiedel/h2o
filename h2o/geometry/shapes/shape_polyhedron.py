@@ -66,24 +66,19 @@ def get_polyhedron_partition(vertices: ndarray, connectivity: List[List[int]]) -
         faces_vertices = vertices[:, faces_vertices_indices]
         number_of_vertices_in_face = faces_vertices.shape[1]
         if number_of_vertices_in_face == 3:
-            # local_partition = np.zeros((1, 3, 4), dtype=real)
-            # local_partition[0, :, :-1] = faces_vertices
-            # local_partition[0, :, -1] = polyhedron_barycenter
             local_partition = np.zeros((3, 4), dtype=real)
             local_partition[:, :-1] = faces_vertices
             local_partition[:, -1] = polyhedron_barycenter
-            # polyhedron_partition[partition_count] = local_partition
             polyhedron_partition[partition_count] = local_partition
             partition_count += 1
         else:
-            local_partition = np.zeros((number_of_vertices_in_face, 3, 4), dtype=real)
             polygon_partition = get_polygon_partition(faces_vertices)
             for i in range(number_of_vertices_in_face):
-                local_partition[i, :, :-1] = polygon_partition[i]
-                local_partition[i, :, -1] = polyhedron_barycenter
-            # polyhedron_partition[partition_count : partition_count + number_of_vertices_in_face] = local_partition
-            polyhedron_partition[partition_count : partition_count + number_of_vertices_in_face] = local_partition
-            partition_count += number_of_vertices_in_face
+                local_partition = np.zeros((3, 4), dtype=real)
+                local_partition[:, :-1] = polygon_partition[i]
+                local_partition[:, -1] = polyhedron_barycenter
+                polyhedron_partition[partition_count] = local_partition
+                partition_count += 1
     return polyhedron_partition
 
 

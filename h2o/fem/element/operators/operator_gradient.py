@@ -19,8 +19,8 @@ def get_symmetric_gradient_component_matrix(
     _c_is = cell.get_quadrature_size(_io)
     cell_quadrature_points = cell.get_quadrature_points(_io)
     cell_quadrature_weights = cell.get_quadrature_weights(_io)
-    x_c = cell.centroid
-    h_c = cell.diameter
+    x_c = cell.get_centroid()
+    h_c = cell.get_diameter()
     local_grad_matric = np.zeros((_ck, _es), dtype=real)
     m_mas = np.zeros((_ck, _ck), dtype=real)
     m_adv_j = np.zeros((_ck, _cl), dtype=real)
@@ -46,10 +46,10 @@ def get_symmetric_gradient_component_matrix(
         _f_is = face.get_quadrature_size(_io)
         face_quadrature_points = face.get_quadrature_points(_io)
         face_quadrature_weights = face.get_quadrature_weights(_io)
-        x_f = face.centroid
-        h_f = face.diameter
+        x_f = face.get_centroid()
+        h_f = face.get_diameter()
         face_rotation_matrix = get_rotation_matrix(face.type, face.vertices)
-        dist_in_face = (face_rotation_matrix @ (face.centroid - cell.centroid))[-1]
+        dist_in_face = (face_rotation_matrix @ (x_f - x_c))[-1]
         if dist_in_face > 0:
             normal_vector_component_j = face_rotation_matrix[-1, _j]
             normal_vector_component_i = face_rotation_matrix[-1, _i]

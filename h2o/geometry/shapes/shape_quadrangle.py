@@ -1,7 +1,7 @@
 from h2o.geometry.geometry import *
 import h2o.geometry.shapes.shape_triangle as shape_triangle
-import h2o.quadratures.gauss.gauss_quadrangle as gauss_quadrangle
-from h2o.quadratures.gauss.gauss_triangle import QuadratureItem
+import h2o.geometry.quadratures.gauss.gauss_quadrangle as gauss_quadrangle
+from h2o.geometry.quadratures.gauss import QuadratureItem
 
 
 def get_quadrangle_barycenter(vertices: ndarray) -> ndarray:

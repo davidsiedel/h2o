@@ -10,13 +10,13 @@ def get_stabilization_operator2(field: Field, finite_element: FiniteElement, cel
     _nf = len(faces)
     _es = _dx * (_cl + _nf * _fk)
     _io = finite_element.construction_integration_order
-    x_c = cell.centroid
-    h_c = cell.diameter
+    x_c = cell.get_centroid()
+    h_c = cell.get_diameter()
     stabilization_operator = np.zeros((_es, _es), dtype=real)
     stabilization_op = np.zeros((_fk * _dx, _es), dtype=real)
     for _f, face in enumerate(faces):
-        h_f = face.diameter
-        x_f = face.centroid
+        h_f = face.get_diameter()
+        x_f = face.get_centroid()
         face_quadrature_points = face.get_quadrature_points(_io)
         face_quadrature_weights = face.get_quadrature_weights(_io)
         face_quadrature_size = face.get_quadrature_size(_io)
@@ -63,13 +63,13 @@ def get_stabilization_operator_component(
     _nf = len(faces)
     _es = _dx * (_cl + _nf * _fk)
     _io = finite_element.construction_integration_order
-    x_c = cell.centroid
-    h_c = cell.diameter
+    x_c = cell.get_centroid()
+    h_c = cell.get_diameter()
     stabilization_operator = np.zeros((_es, _es), dtype=real)
     stabilization_op = np.zeros((_fk, _es), dtype=real)
     face = faces[_f]
-    h_f = face.diameter
-    x_f = face.centroid
+    h_f = face.get_diameter()
+    x_f = face.get_centroid()
     face_quadrature_points = face.get_quadrature_points(_io)
     face_quadrature_weights = face.get_quadrature_weights(_io)
     face_quadrature_size = face.get_quadrature_size(_io)
@@ -110,7 +110,7 @@ def get_stabilization_operator(field: Field, finite_element: FiniteElement, cell
     _es = _dx * (_cl + _nf * _fk)
     stabilization_operator = np.zeros((_es, _es), dtype=real)
     for _f, face in enumerate(faces):
-        h_f = face.diameter
+        h_f = face.get_diameter()
         for _i in range(_dx):
             stabilization_operator += get_stabilization_operator_component(field, finite_element, cell, faces, _f, _i)
         stabilization_operator *= 1.0 / h_f

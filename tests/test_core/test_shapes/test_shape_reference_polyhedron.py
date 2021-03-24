@@ -4,11 +4,10 @@ from scipy import integrate
 
 import matplotlib.pyplot as plt
 
-# from mpl_toolkits.mplot3d import Axes3D
 import quadpy
 
 from h2o.fem.basis.bases.monomial import Monomial
-from h2o.geometry.shape2 import Shape
+from h2o.geometry.shape import Shape
 from h2o.fem.element.finite_element import FiniteElement
 from h2o.h2o import *
 
@@ -22,6 +21,16 @@ class TestReferencePolyhederon(TestCase):
     def test_reference_polyhedron_geometry_cell(self, verbose=True):
         """
 
+          V8  o_______________o V7
+             /|     V6       /|
+            / |     o       / |
+        V4 o_______________o V5
+           |  |            |  |
+        V3 |  o___________ |__o V2              Z
+           | /             | /                  ^ Y
+           |/              |/                   |/
+        V0 o_______________o V1                 0---> X
+
         Args:
             verbose:
         """
@@ -31,21 +40,33 @@ class TestReferencePolyhederon(TestCase):
         v3 = np.array([0.0, 1.0, 0.0], dtype=real)
         v4 = np.array([0.0, 0.0, 1.0], dtype=real)
         v5 = np.array([1.0, 0.0, 1.0], dtype=real)
-        v5p = np.array([0.5, 0.5, 1.0], dtype=real)
-        v6 = np.array([1.0, 1.0, 1.0], dtype=real)
-        v7 = np.array([0.0, 1.0, 1.0], dtype=real)
-        vertices = np.array([v0, v1, v2, v3, v4, v5, v5p, v6, v7], dtype=real).T
+        v6 = np.array([0.5, 0.5, 1.0], dtype=real)
+        v7 = np.array([1.0, 1.0, 1.0], dtype=real)
+        v8 = np.array([0.0, 1.0, 1.0], dtype=real)
+        vertices = np.array([v0, v1, v2, v3, v4, v5, v6, v7, v8], dtype=real).T
+        # --- CONNECTIVITY, COUNTER CLOCK WISE
+        # connectivity = [
+        #     [0, 3, 2, 1],
+        #     [0, 1, 5, 4],
+        #     [1, 2, 7, 5],
+        #     [2, 3, 8, 7],
+        #     [3, 0, 4, 8],
+        #     [4, 5, 6],
+        #     [5, 7, 6],
+        #     [7, 8, 6],
+        #     [8, 4, 6],
+        # ]
+        # --- CONNECTIVIY, CLOCK WISE
         connectivity = [
             [0, 1, 2, 3],
-            [0, 1, 5, 4],
-            [1, 2, 7, 5],
-            [2, 3, 8, 7],
-            [3, 0, 4, 8],
-            [3, 0, 4, 8],
-            [4, 5, 6],
-            [5, 7, 6],
-            [7, 8, 6],
-            [8, 4, 6],
+            [0, 4, 5, 1],
+            [1, 5, 7, 2],
+            [2, 7, 8, 3],
+            [3, 8, 4, 0],
+            [6, 5, 4],
+            [6, 7, 5],
+            [6, 8, 7],
+            [6, 4, 8],
         ]
         shape = Shape(ShapeType.POLYHEDRON, vertices, connectivity=connectivity)
         x_c = shape.get_centroid()
@@ -65,6 +86,16 @@ class TestReferencePolyhederon(TestCase):
     def test_reference_polyhedron_quadrature(self, verbose=True):
         """
 
+          V8  o_______________o V7
+             /|     V6       /|
+            / |     o       / |
+        V4 o_______________o V5
+           |  |            |  |
+        V3 |  o___________ |__o V2              Z
+           | /             | /                  ^ Y
+           |/              |/                   |/
+        V0 o_______________o V1                 0---> X
+
         Args:
             verbose:
         """
@@ -74,21 +105,33 @@ class TestReferencePolyhederon(TestCase):
         v3 = np.array([0.0, 1.0, 0.0], dtype=real)
         v4 = np.array([0.0, 0.0, 1.0], dtype=real)
         v5 = np.array([1.0, 0.0, 1.0], dtype=real)
-        v5p = np.array([0.5, 0.5, 1.0], dtype=real)
-        v6 = np.array([1.0, 1.0, 1.0], dtype=real)
-        v7 = np.array([0.0, 1.0, 1.0], dtype=real)
-        vertices = np.array([v0, v1, v2, v3, v4, v5, v5p, v6, v7], dtype=real).T
+        v6 = np.array([0.5, 0.5, 1.0], dtype=real)
+        v7 = np.array([1.0, 1.0, 1.0], dtype=real)
+        v8 = np.array([0.0, 1.0, 1.0], dtype=real)
+        vertices = np.array([v0, v1, v2, v3, v4, v5, v6, v7, v8], dtype=real).T
+        # --- CONNECTIVITY, COUNTER CLOCK WISE
+        # connectivity = [
+        #     [0, 3, 2, 1],
+        #     [0, 1, 5, 4],
+        #     [1, 2, 7, 5],
+        #     [2, 3, 8, 7],
+        #     [3, 0, 4, 8],
+        #     [4, 5, 6],
+        #     [5, 7, 6],
+        #     [7, 8, 6],
+        #     [8, 4, 6],
+        # ]
+        # --- CONNECTIVIY, CLOCK WISE
         connectivity = [
             [0, 1, 2, 3],
-            [0, 1, 5, 4],
-            [1, 2, 7, 5],
-            [2, 3, 8, 7],
-            [3, 0, 4, 8],
-            [3, 0, 4, 8],
-            [4, 5, 6],
-            [5, 7, 6],
-            [7, 8, 6],
-            [8, 4, 6],
+            [0, 4, 5, 1],
+            [1, 5, 7, 2],
+            [2, 7, 8, 3],
+            [3, 8, 4, 0],
+            [6, 5, 4],
+            [6, 7, 5],
+            [6, 8, 7],
+            [6, 4, 8],
         ]
         shape = Shape(ShapeType.POLYHEDRON, vertices, connectivity=connectivity)
         for _io in range(1, 9):
@@ -97,7 +140,7 @@ class TestReferencePolyhederon(TestCase):
             f_scipy = lambda x, y, z: np.exp(x) * np.sin(x * y / (z + 0.003)) + y * z + 3.0
             # --- GET QUADPY ESTIMATION
             scheme = quadpy.c3.get_good_scheme(_io)
-            val = scheme.integrate(f, [[[v0, v4], [v3, v7]], [[v1, v5], [v2, v6]]])
+            val = scheme.integrate(f, [[[v0, v4], [v3, v8]], [[v1, v5], [v2, v7]]])
             # --- GET H20 ESTIMATION
             val_num = 0.0
             shape_quadrature_points = shape.get_quadrature_points(_io)
@@ -129,6 +172,16 @@ class TestReferencePolyhederon(TestCase):
 
     def test_reference_polyhedron_cell(self, verbose=True):
         """
+
+          V8  o_______________o V7
+             /|     V6       /|
+            / |     o       / |
+        V4 o_______________o V5
+           |  |            |  |
+        V3 |  o___________ |__o V2              Z
+           | /             | /                  ^ Y
+           |/              |/                   |/
+        V0 o_______________o V1                 0---> X
 
         Args:
             verbose:
@@ -216,12 +269,36 @@ class TestReferencePolyhederon(TestCase):
                 v3 = np.array([0.0, 1.0, 0.0], dtype=real)
                 v4 = np.array([0.0, 0.0, 1.0], dtype=real)
                 v5 = np.array([1.0, 0.0, 1.0], dtype=real)
-                v6 = np.array([1.0, 1.0, 1.0], dtype=real)
-                v7 = np.array([0.0, 1.0, 1.0], dtype=real)
-                vertices = np.array([v0, v1, v2, v3, v4, v5, v6, v7], dtype=real).T
-
+                v6 = np.array([0.5, 0.5, 1.0], dtype=real)
+                v7 = np.array([1.0, 1.0, 1.0], dtype=real)
+                v8 = np.array([0.0, 1.0, 1.0], dtype=real)
+                vertices = np.array([v0, v1, v2, v3, v4, v5, v6, v7, v8], dtype=real).T
+                # --- CONNECTIVITY, COUNTER CLOCK WISE
+                # connectivity = [
+                #     [0, 3, 2, 1],
+                #     [0, 1, 5, 4],
+                #     [1, 2, 7, 5],
+                #     [2, 3, 8, 7],
+                #     [3, 0, 4, 8],
+                #     [4, 5, 6],
+                #     [5, 7, 6],
+                #     [7, 8, 6],
+                #     [8, 4, 6],
+                # ]
+                # --- CONNECTIVIY, CLOCK WISE
+                connectivity = [
+                    [0, 1, 2, 3],
+                    [0, 4, 5, 1],
+                    [1, 5, 7, 2],
+                    [2, 7, 8, 3],
+                    [3, 8, 4, 0],
+                    [6, 5, 4],
+                    [6, 7, 5],
+                    [6, 8, 7],
+                    [6, 4, 8],
+                ]
                 # --- BUILD CELL
-                shape = Shape(ShapeType.HEXAHEDRON, vertices)
+                shape = Shape(ShapeType.POLYHEDRON, vertices, connectivity=connectivity)
                 x_c = shape.get_centroid()
                 h_c = shape.get_diameter()
                 _io = finite_element.construction_integration_order
@@ -266,11 +343,11 @@ class TestReferencePolyhederon(TestCase):
                                 f_advc_check = lambda x: test_function(
                                     order_0, x, x_c, h_c, coef_0
                                 ) * test_function_derivative(order_1, x, x_c, h_c, _j, coef_1)
-                                mass_integral_check = scheme.integrate(f_mass_check, [[[v0, v4], [v3, v7]], [[v1, v5], [v2, v6]]])
-                                stif_integral_check = scheme.integrate(f_stif_check, [[[v0, v4], [v3, v7]], [[v1, v5], [v2, v6]]])
-                                advc_integral_check = scheme.integrate(f_advc_check, [[[v0, v4], [v3, v7]], [[v1, v5], [v2, v6]]])
-                                rtol = 1.0e-15
-                                atol = 1.0e-15
+                                mass_integral_check = scheme.integrate(f_mass_check, [[[v0, v4], [v3, v8]], [[v1, v5], [v2, v7]]])
+                                stif_integral_check = scheme.integrate(f_stif_check, [[[v0, v4], [v3, v8]], [[v1, v5], [v2, v7]]])
+                                advc_integral_check = scheme.integrate(f_advc_check, [[[v0, v4], [v3, v8]], [[v1, v5], [v2, v7]]])
+                                rtol = 1.0e-12
+                                atol = 1.0e-12
                                 if verbose:
                                     print(
                                         "MASS INTEGRAL CHECK | ORDER : {} | ELEM : {} | dir {}, {}, | order {}, {}".format(

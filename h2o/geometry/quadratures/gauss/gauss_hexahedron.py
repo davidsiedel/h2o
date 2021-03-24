@@ -1,6 +1,3 @@
-from h2o.quadratures.quadrature_utils import *
-
-
 def get_number_of_quadrature_points_in_hexahedron(integration_order: int) -> int:
     """
 

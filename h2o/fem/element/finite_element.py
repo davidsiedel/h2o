@@ -4,7 +4,7 @@ from h2o.fem.basis.basis import Basis
 
 class FiniteElement:
     element_type: ElementType
-    polynomial_order: int
+    k_order: int
     construction_integration_order: int
     computation_integration_order: int
     basis_type: BasisType
@@ -29,61 +29,76 @@ class FiniteElement:
             basis_type:
         """
         self.element_type = element_type
-        self.polynomial_order = polynomial_order
         self.basis_type = basis_type
+        # --- POLYNOMIAL ORDERS
+        self.k_order = polynomial_order
+        self.r_order = polynomial_order + 1
         if element_type == ElementType.HDG_LOW:
-            self.cell_polynomial_order = polynomial_order - 1
-            self.cell_basis_k = Basis(
-                polynomial_order, euclidean_dimension, basis_type=basis_type
-            )
-            self.cell_basis_l = Basis(
-                self.cell_polynomial_order, euclidean_dimension, basis_type=basis_type
-            )
-            self.face_basis_k = Basis(
-                polynomial_order, euclidean_dimension - 1, basis_type=basis_type
-            )
-            self.cell_basis_r = Basis(
-                polynomial_order + 1, euclidean_dimension, basis_type=basis_type
-            )
-            self.construction_integration_order = 2 * (polynomial_order + 1)
-            self.computation_integration_order = 2 * (polynomial_order + 1)
+            self.l_order = polynomial_order - 1
         elif element_type == ElementType.HDG_EQUAL:
-            self.cell_polynomial_order = polynomial_order
-            self.cell_basis_k = Basis(
-                polynomial_order, euclidean_dimension, basis_type=basis_type
-            )
-            self.cell_basis_l = Basis(
-                self.cell_polynomial_order, euclidean_dimension, basis_type=basis_type
-            )
-            self.face_basis_k = Basis(
-                polynomial_order, euclidean_dimension - 1, basis_type=basis_type
-            )
-            self.cell_basis_r = Basis(
-                polynomial_order + 1, euclidean_dimension, basis_type=basis_type
-            )
-            self.construction_integration_order = 2 * (polynomial_order + 1)
-            self.computation_integration_order = 2 * (polynomial_order + 1)
+            self.l_order = polynomial_order
         elif element_type == ElementType.HDG_HIGH:
-            self.cell_polynomial_order = polynomial_order + 1
-            self.cell_basis_k = Basis(
-                polynomial_order, euclidean_dimension, basis_type=basis_type
-            )
-            self.cell_basis_l = Basis(
-                self.cell_polynomial_order, euclidean_dimension, basis_type=basis_type
-            )
-            self.face_basis_k = Basis(
-                polynomial_order, euclidean_dimension - 1, basis_type=basis_type
-            )
-            self.cell_basis_r = Basis(
-                polynomial_order + 1, euclidean_dimension, basis_type=basis_type
-            )
-            self.construction_integration_order = 2 * (polynomial_order + 1)
-            self.computation_integration_order = 2 * (polynomial_order + 1)
-
+            self.l_order = polynomial_order + 1
         else:
-            raise KeyError("NO")
-        return
-
+            raise ElementError("the specified element type is not known : {}".format(element_type))
+        # --- BUILDING BASES
+        self.cell_basis_k = Basis(self.k_order, euclidean_dimension, basis_type=basis_type)
+        self.cell_basis_l = Basis(self.l_order, euclidean_dimension, basis_type=basis_type)
+        self.cell_basis_r = Basis(self.r_order, euclidean_dimension, basis_type=basis_type)
+        self.face_basis_k = Basis(self.k_order, euclidean_dimension - 1, basis_type=basis_type)
+        # --- INTEGRATION ORDERS
+        self.construction_integration_order = 2 * (polynomial_order + 1)
+        self.computation_integration_order = 2 * (polynomial_order + 1)
+        #     self.cell_basis_k = Basis(
+        #         self.k_order, euclidean_dimension, basis_type=basis_type
+        #     )
+        #     self.cell_basis_l = Basis(
+        #         self.l_order, euclidean_dimension, basis_type=basis_type
+        #     )
+        #     self.face_basis_k = Basis(
+        #         self.k_order, euclidean_dimension - 1, basis_type=basis_type
+        #     )
+        #     self.cell_basis_r = Basis(
+        #         self.r_order, euclidean_dimension, basis_type=basis_type
+        #     )
+        #     self.construction_integration_order = 2 * (polynomial_order + 1)
+        #     self.computation_integration_order = 2 * (polynomial_order + 1)
+        # elif element_type == ElementType.HDG_EQUAL:
+        #     self.l_order = polynomial_order
+        #     self.cell_basis_k = Basis(
+        #         polynomial_order, euclidean_dimension, basis_type=basis_type
+        #     )
+        #     self.cell_basis_l = Basis(
+        #         self.l_order, euclidean_dimension, basis_type=basis_type
+        #     )
+        #     self.face_basis_k = Basis(
+        #         polynomial_order, euclidean_dimension - 1, basis_type=basis_type
+        #     )
+        #     self.cell_basis_r = Basis(
+        #         polynomial_order + 1, euclidean_dimension, basis_type=basis_type
+        #     )
+        #     self.construction_integration_order = 2 * (polynomial_order + 1)
+        #     self.computation_integration_order = 2 * (polynomial_order + 1)
+        # elif element_type == ElementType.HDG_HIGH:
+        #     self.l_order = polynomial_order + 1
+        #     self.cell_basis_k = Basis(
+        #         polynomial_order, euclidean_dimension, basis_type=basis_type
+        #     )
+        #     self.cell_basis_l = Basis(
+        #         self.l_order, euclidean_dimension, basis_type=basis_type
+        #     )
+        #     self.face_basis_k = Basis(
+        #         polynomial_order, euclidean_dimension - 1, basis_type=basis_type
+        #     )
+        #     self.cell_basis_r = Basis(
+        #         polynomial_order + 1, euclidean_dimension, basis_type=basis_type
+        #     )
+        #     self.construction_integration_order = 2 * (polynomial_order + 1)
+        #     self.computation_integration_order = 2 * (polynomial_order + 1)
+        #
+        # else:
+        #     raise KeyError("NO")
+        # return
 
         # if self.field.field_type == FieldType.SCALAR:
         #     # self.gradient_type = DerivationType.FULL

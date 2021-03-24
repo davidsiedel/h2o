@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import quadpy
 
 from h2o.fem.basis.bases.monomial import Monomial
-from h2o.geometry.shape2 import Shape
+from h2o.geometry.shape import Shape
 from h2o.fem.element.finite_element import FiniteElement
 from h2o.h2o import *
 
