@@ -1,0 +1,34 @@
+@Author Thomas Helfer;
+@Date   11/02/2021;
+@Description{
+
+};
+
+@ModellingHypothesis 'Tridimensional';
+@Behaviour<generic> '../behaviour/src/libBehaviour.so' 'IsotropicLinearHardeningPlasticity';
+
+// external state variable
+@ExternalStateVariable 'Temperature' 293.15;
+
+@ImposedDeformationGradient 'FXX' {
+  0 : 1,
+  1 : '1+7e-3',
+  2 : '1-1e-2',
+  3 : '1+2e-2',
+  4 : '1-3e-2',
+  5 : '1+4e-2'
+};
+
+//@ImposedDeformationGradient 'FXX' {
+//  0 : 1,
+//  1 : '1+0.01'
+//};
+
+@ImposedDeformationGradient 'FXY' 0.;
+@ImposedDeformationGradient 'FXZ' 0.;
+@ImposedDeformationGradient 'FYX' 0.;
+@ImposedDeformationGradient 'FYZ' 0.;
+@ImposedDeformationGradient 'FZX' 0.;
+@ImposedDeformationGradient 'FZY' 0.;
+
+@Times{0, 5 in 10};

@@ -1,6 +1,6 @@
 from h2o.geometry.geometry import *
 import h2o.geometry.quadratures.gauss.gauss_hexahedron as gauss_hexahedron
-from h2o.geometry.quadratures.gauss import QuadratureItem
+from h2o.geometry.quadratures.quadrature import *
 
 
 def get_hexahedron_barycenter(vertices: ndarray) -> ndarray:
@@ -170,7 +170,7 @@ def get_hexahedron_quadrature_weights(
         jacobian[2, 0] = jacobian_operator[6] @ vertices[2, :]
         jacobian[2, 1] = jacobian_operator[7] @ vertices[2, :]
         jacobian[2, 2] = jacobian_operator[8] @ vertices[2, :]
-        jacobian_weights[i] = np.linalg.det(jacobian)
+        jacobian_weights[i] = np.abs(np.linalg.det(jacobian))
     quadrature_weights = quadrature_reference_weights * jacobian_weights
     return quadrature_weights
 

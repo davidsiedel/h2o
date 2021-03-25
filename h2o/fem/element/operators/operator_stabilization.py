@@ -115,3 +115,74 @@ def get_stabilization_operator(field: Field, finite_element: FiniteElement, cell
             stabilization_operator += get_stabilization_operator_component(field, finite_element, cell, faces, _f, _i)
         stabilization_operator *= 1.0 / h_f
     return stabilization_operator
+
+
+def get_stab_test(field: Field, finite_element: FiniteElement, cell: Shape, faces: List[Shape])-> ndarray:
+    _dx = field.field_dimension
+    _cl = finite_element.cell_basis_l.dimension
+    _fk = finite_element.face_basis_k.dimension
+    _nf = len(faces)
+    _es = _dx * (_cl + _nf * _fk)
+    stabilization_operator = np.zeros((_es, _es), dtype=real)
+    h_c = cell.get_diameter()
+    x_c = cell.get_centroid()
+    for _f, face in enumerate(faces):
+        face_stabilization_operator = np.zeros((_es, _es), dtype=real)
+        stabilization_vector_operator = np.zeros((_dx, _es), dtype=real)
+        x_f = face.get_centroid()
+        h_f = face.get_diameter()
+        m_mas_f = np.zeros((_fk, _fk), dtype=real)
+        m_hyb_f = np.zeros((_fk, _cl), dtype=real)
+        # m_prj_f = np.zeros((_fk, _cl))
+        face_rotation_matrix = face.get_rotation_matrix()
+        face_quadrature_size = face.get_quadrature_size(finite_element.construction_integration_order)
+        face_quadrature_points = face.get_quadrature_points(finite_element.construction_integration_order)
+        face_quadrature_weights = face.get_quadrature_weights(finite_element.construction_integration_order)
+        # for qf in range(len(face.quadrature_weights)):
+        for qf in range(face_quadrature_size):
+            x_q_f = face_quadrature_points[:, qf]
+            w_q_f = face_quadrature_weights[qf]
+            s_f = (face_rotation_matrix @ x_f)[:-1]
+            s_q_f = (face_rotation_matrix @ x_q_f)[:-1]
+            psi_k = w_q_f * finite_element.face_basis_k.evaluate_function(s_q_f, s_f, h_f)
+            phi_l = w_q_f * finite_element.cell_basis_l.evaluate_function(x_q_f, x_c, h_c)
+            m_mas_f += np.tensordot(psi_k, psi_k, axes=0)
+            m_hyb_f += np.tensordot(psi_k, phi_l, axes=0)
+            # m_mas_f += get_face_mass_matrix_in_face(
+            #     face, finite_element.face_basis_k, finite_element.face_basis_k, x_q_f, w_q_f
+            # )
+            # m_hyb_f += get_test_mass_matrix_in_face(
+            #     cell, face, finite_element.cell_basis_l, finite_element.face_basis_k, x_q_f, w_q_f
+            # )
+        m_mas_f_inv = np.linalg.inv(m_mas_f)
+        # if  == DebugMode.LIGHT:
+        #     print("FACE MASS MATRIX IN STABILIZATION COND :")
+        #     print("{}".format(np.linalg.cond(m_mas_f)))
+        m_prj_f = m_mas_f_inv @ m_hyb_f
+        m_eye_f = np.eye(_fk, dtype=real)
+        for _x in range(_dx):
+            stabilization_vector_component_op = np.zeros((_fk, _es), dtype=real)
+            c0 = _x * _cl
+            c1 = (_x + 1) * _cl
+            stabilization_vector_component_op[:,c0:c1] -= m_prj_f
+            c0 = _dx * _cl + _f * _dx * _fk + _x * _fk
+            c1 = _dx * _cl + _f * _dx * _fk + (_x + 1) * _fk
+            stabilization_vector_component_op[:,c0:c1] += m_eye_f
+            # for qf in range(len(face.quadrature_weights)):
+            for qf in range(face_quadrature_size):
+                x_q_f = face_quadrature_points[:, qf]
+                w_q_f = face_quadrature_weights[qf]
+                s_q_f = (face_rotation_matrix @ x_q_f)[:-1]
+                s_f = (face_rotation_matrix @ x_f)[:-1]
+                v_face = finite_element.face_basis_k.evaluate_function(s_q_f, s_f, h_f)
+                # stabilization_vector_component_at_quad = v_face @ stabilization_vector_component_op
+                stabilization_vector_operator[_x,:] += v_face @ stabilization_vector_component_op
+        # for qf in range(len(face.quadrature_weights)):
+        for qf in range(face_quadrature_size):
+            x_q_f = face_quadrature_points[:, qf]
+            w_q_f = face_quadrature_weights[qf]
+            m_eye_tan = np.eye(_dx, dtype=real)
+            face_stabilization_operator += w_q_f * stabilization_vector_operator.T @ m_eye_tan @ stabilization_vector_operator
+        weighted_face_stabilization_operator = (1.0/h_f) * face_stabilization_operator
+        stabilization_operator += weighted_face_stabilization_operator
+    return stabilization_operator

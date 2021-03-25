@@ -1,3 +1,6 @@
+from h2o.geometry.quadratures.quadrature import *
+
+
 def get_number_of_quadrature_points_in_triangle(integration_order: int) -> int:
     """
 
@@ -23,20 +26,16 @@ def get_reference_triangle_quadrature_item(integration_order: int, quadrature_it
     Returns:
 
     """
-    if integration_order in [0,1]:
-        reference_points = [
-            [0.3333333333333333, 0.3333333333333333, 0.3333333333333333],
-        ]
-        reference_weights = [
-            1.0000000000000000,
-        ]
+    if integration_order in [0, 1]:
+        reference_points = [[0.3333333333333333, 0.3333333333333333, 0.3333333333333333]]
+        reference_weights = [1.0000000000000000]
         jacobian = [
             [
                 [-0.7071067811865476, 0.7071067811865476, 0.0000000000000000],
                 [-0.7071067811865476, 0.0000000000000000, 0.7071067811865476],
                 [-0.7071067811865476, 0.7071067811865476, 0.0000000000000000],
                 [-0.7071067811865476, 0.0000000000000000, 0.7071067811865476],
-            ],
+            ]
         ]
     elif integration_order == 2:
         reference_points = [
@@ -44,11 +43,7 @@ def get_reference_triangle_quadrature_item(integration_order: int, quadrature_it
             [0.5000000000000000, 0.0000000000000000, 0.5000000000000000],
             [0.0000000000000000, 0.5000000000000000, 0.5000000000000000],
         ]
-        reference_weights = [
-            0.3333333333333333,
-            0.3333333333333333,
-            0.3333333333333333,
-        ]
+        reference_weights = [0.3333333333333333, 0.3333333333333333, 0.3333333333333333]
         jacobian = [
             [
                 [-0.7071067811865476, 0.7071067811865476, 0.0000000000000000],
@@ -607,7 +602,7 @@ def get_reference_triangle_quadrature_item(integration_order: int, quadrature_it
                 [-0.7071067811865476, 0.0000000000000000, 0.7071067811865476],
             ],
         ]
-# if integration_order in [0, 1]:
+    # if integration_order in [0, 1]:
     #     reference_points = [
     #         [0.3333333333333333, 0.3333333333333333, 0.3333333333333333],
     #     ]

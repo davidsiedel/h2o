@@ -87,20 +87,22 @@ class Mesh:
             self.number_of_vertices_in_mesh = self.get_number_of_vertices_in_mesh()
             self.number_of_cells_in_mesh = self.get_number_of_cells_in_mesh()
             self.number_of_faces_in_mesh = self.get_number_of_faces_in_mesh()
-            self.number_of_cell_quadrature_points_in_mesh = get_number_of_quadrature_points_in_mesh(
-                cells_shapes, integration_order, quadrature_type=quadrature_type
-            )
-            n_fq = 0
-            for _f in range(self.number_of_faces_in_mesh):
-                face_vertices = self.vertices[:, self.faces_vertices_connectivity[_f]]
-                face_shape_type = self.faces_shape_types[_f]
-                n = shp.get_quadrature_size(
-                    face_shape_type, face_vertices, integration_order, quadrature_type=quadrature_type,
-                )
-                n_fq += n
-            self.number_of_face_quadrature_points_in_mesh = get_number_of_quadrature_points_in_mesh(
-                faces_shapes, integration_order, quadrature_type=quadrature_type
-            )
+            # self.number_of_cell_quadrature_points_in_mesh = get_number_of_quadrature_points_in_mesh(
+            #     cells_shapes, integration_order, quadrature_type=quadrature_type
+            # )
+            self.number_of_cell_quadrature_points_in_mesh = self.get_number_of_cell_quadrature_points_in_mesh(integration_order, quadrature_type=quadrature_type)
+            self.number_of_face_quadrature_points_in_mesh = self.get_number_of_face_quadrature_points_in_mesh(integration_order, quadrature_type=quadrature_type)
+            # n_fq = 0
+            # for _f in range(self.number_of_faces_in_mesh):
+            #     face_vertices = self.vertices[:, self.faces_vertices_connectivity[_f]]
+            #     face_shape_type = self.faces_shape_types[_f]
+            #     n = shp.get_quadrature_size(
+            #         face_shape_type, face_vertices, integration_order, quadrature_type=quadrature_type,
+            #     )
+            #     n_fq += n
+            # self.number_of_face_quadrature_points_in_mesh = get_number_of_quadrature_points_in_mesh(
+            #     faces_shapes, integration_order, quadrature_type=quadrature_type
+            # )
             self.vertices_weights_cell = geof.get_vertices_weights(mesh_file_path, cells_vertices_connectivity)
             self.vertices_weights_face = geof.get_vertices_weights(mesh_file_path, faces_vertices_connectivity)
         else:
@@ -168,7 +170,7 @@ class Mesh:
 
         """
         n_cq = 0
-        for _c in range(self.number_of_faces_in_mesh):
+        for _c in range(self.number_of_cells_in_mesh):
             cell_vertices = self.vertices[:, self.cells_vertices_connectivity[_c]]
             cell_shape_type = self.cells_shape_types[_c]
             cell_connectivity = self.cells_ordering[_c]

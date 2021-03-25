@@ -106,5 +106,7 @@ def check_points_coplanar(vertices: ndarray):
             for i in range(number_of_edges - 1):
                 edge = edges[:, i] / np.linalg.norm(edges[:, i])
                 cos_theta = edge @ normal_vector
-                if cos_theta < 0.0 + tol or cos_theta > 0.0 - tol or cos_theta < 1.0 + tol or cos_theta > 1.0 - tol:
+                # if cos_theta < 0.0 + tol or cos_theta > 0.0 - tol or cos_theta < 1.0 + tol or cos_theta > 1.0 - tol:
+                #     raise GeometryError("points are not coplanar")
+                if not 0.0 - tol < cos_theta < 0.0 + tol and not -(1.0 - tol) < cos_theta < -(1.0 + tol):
                     raise GeometryError("points are not coplanar")

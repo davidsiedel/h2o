@@ -7,6 +7,9 @@ from h2o.problem.load import Load
 from h2o.field.field import Field
 from h2o.fem.element.finite_element import FiniteElement
 from h2o.h2o import *
+from mgis import behaviour as mgis_bv
+
+from h2o.problem.resolution.condensation import solve_newton_2
 
 
 class TestProblem(TestCase):
@@ -38,7 +41,7 @@ class TestProblem(TestCase):
 
         # --- MESH
         mesh_file_path = (
-            "../../data/test_data/meshes/cook5.geof"
+            "meshes/triang_r.geof"
         )
 
         # --- FIELD
@@ -68,10 +71,9 @@ class TestProblem(TestCase):
         # --- MATERIAL
         parameters = {"YoungModulus": 70.0e9, "PoissonRatio": 0.34}
         stabilization_parameter = parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
-
         mat = Material(
             nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
-            library_path="../../behaviour/elasticity/src/libBehaviour.so",
+            library_path="../../test_mechanics/test_element/2D/test_2D_small_strain_linear_elasticity/behaviour/src/libBehaviour.so",
             library_name="Elasticity",
             hypothesis=mgis_bv.Hypothesis.PLANESTRAIN,
             stabilization_parameter=stabilization_parameter,
@@ -80,3 +82,6 @@ class TestProblem(TestCase):
             parameters=None,
             # finite_strains=False
         )
+
+        # --- SOLVE
+        solve_newton_2(p, mat)

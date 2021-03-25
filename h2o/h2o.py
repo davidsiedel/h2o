@@ -6,14 +6,10 @@ import pathlib
 import shutil
 import os
 
-# real = np.float64
-real = float
-# real = np.float32
-# intg = np.uint8
-intg = int
-size_type = np.uint8
 
-debug_mode = -1
+class DebugMode(Enum):
+    NONE = auto()
+    LIGHT = auto()
 
 
 class BoundaryType(Enum):
@@ -23,6 +19,7 @@ class BoundaryType(Enum):
 
 
 class ShapeType(Enum):
+    POINT = auto()
     SEGMENT = auto()
     TRIANGLE = auto()
     QUADRANGLE = auto()
@@ -84,6 +81,7 @@ class QuadratureError(Exception):
 class ElementError(Exception):
     pass
 
+
 def get_project_path():
     return pathlib.Path(__file__).parent.parent.absolute()
 
@@ -91,3 +89,12 @@ def get_project_path():
 def get_res_file_path(res_file_name: str, suffix: str):
     project_path = get_project_path()
     return os.path.join(project_path, "res/{}_{}.txt".format(res_file_name, suffix))
+
+
+# real = np.float64
+real = float
+# real = np.float32
+# intg = np.uint8
+intg = int
+size_type = np.uint8
+# debug_mode = DebugMode.LIGHT

@@ -6,11 +6,85 @@ from h2o.mesh.element_description import CellDescription, FaceDescription
 from h2o.h2o import *
 
 geof_cell_library = {
-    "c1d2": CellDescription(ShapeType.SEGMENT, [[0], [1]], 2, 2, 1, "c1d2"),
-    "c2d3": CellDescription(ShapeType.TRIANGLE, [[0, 1], [1, 2], [2, 0]], 3, 3, 2, "c2d3"),
-    "c2d4": CellDescription(ShapeType.QUADRANGLE, [[0, 1], [1, 2], [2, 3], [3, 0]], 4, 4, 2, "c2d4"),
-    "c2d5": CellDescription(ShapeType.POLYGON, [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0]], 5, 5, 2, "c2d5"),
+    # --- 1D
+    "c1d2": CellDescription(ShapeType.SEGMENT,
+                            [
+                                [0],
+                                [1],
+                            ],
+                            2, 2, 1,
+                            "c1d2"
+                            ),
+    # --- 2D
+    "c2d3": CellDescription(ShapeType.TRIANGLE,
+                            [
+                                [0, 1],
+                                [1, 2],
+                                [2, 0],
+                            ]
+                            ,
+                            3, 3, 2,
+                            "c2d3"
+                            ),
+    "c2d4": CellDescription(ShapeType.QUADRANGLE,
+                            [
+                                [0, 1],
+                                [1, 2],
+                                [2, 3],
+                                [3, 0],
+                            ],
+                            4, 4, 2,
+                            "c2d4"
+                            ),
+    "c2d5": CellDescription(ShapeType.POLYGON,
+                            [
+                                [0, 1],
+                                [1, 2],
+                                [2, 3],
+                                [3, 4],
+                                [4, 0],
+                            ],
+                            5, 5, 2,
+                            "c2d5"
+                            ),
+    # --- 3D
+    "c3d8": CellDescription(ShapeType.HEXAHEDRON,
+                            [
+                                [0, 1, 2, 3],
+                                [4, 7, 6, 5],
+                                [1, 5, 6, 2],
+                                [0, 3, 7, 4],
+                                [3, 2, 6, 7],
+                                [0, 4, 5, 1],
+                            ],
+                            8, 6, 3,
+                            "c3d8"
+                            ),
+    "c3d9": CellDescription(ShapeType.POLYHEDRON,
+                            [
+                                [0, 1, 2, 3],
+                                [1, 5, 7, 2],
+                                [0, 3, 8, 4],
+                                [3, 2, 7, 8],
+                                [0, 4, 5, 1],
+                                [6, 5, 4],
+                                [6, 7, 5],
+                                [6, 8, 7],
+                                [6, 4, 8],
+                            ],
+                            9, 9, 3,
+                            "c3d9"
+                            ),
 }
+# [0, 1, 2, 3],
+# [0, 4, 5, 1],
+# [1, 5, 7, 2],
+# [2, 7, 8, 3],
+# [3, 8, 4, 0],
+# [6, 5, 4],
+# [6, 7, 5],
+# [6, 8, 7],
+# [6, 4, 8],
 
 geof_face_library = {
     "c1d1": FaceDescription(ShapeType.POINT, 1, 1, "c1d1"),
@@ -66,11 +140,9 @@ def get_vertices(geof_file_path: str) -> ndarray:
     euclidean_dimension = int(c[line_count].rstrip().split(" ")[1])
     number_of_vertices_in_mesh = int(c[line_count].rstrip().split(" ")[0])
     line_count = 3
-    # vertices = np.zeros((euclidean_dimension, number_of_vertices_in_mesh), dtype=real)
-    vertices = np.zeros((euclidean_dimension, number_of_vertices_in_mesh), dtype=float)
+    vertices = np.zeros((euclidean_dimension, number_of_vertices_in_mesh), dtype=real)
     for vertex_count, i in enumerate(range(line_count, line_count + number_of_vertices_in_mesh)):
         vertex = [float(c[i].split(" ")[j]) for j in range(1, euclidean_dimension + 1)]
-        # vertex = np.array(vertex, dtype=real)
         vertex = np.array(vertex, dtype=real)
         vertices[:, vertex_count] += vertex
     return vertices

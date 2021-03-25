@@ -1,9 +1,6 @@
 from h2o.geometry.geometry import *
 import h2o.geometry.shapes.shape_triangle as shape_triangle
 
-# import h2o.quadratures.gauss.gauss_triangle as gauss_triangle
-# from h2o.quadratures.gauss.gauss_triangle import QuadratureItem
-
 
 def get_polygon_barycenter(vertices: ndarray) -> ndarray:
     """

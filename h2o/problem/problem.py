@@ -1,7 +1,3 @@
-from typing import List
-from numpy import ndarray
-import matplotlib.pyplot as plt
-
 from h2o.mesh.mesh import Mesh
 from h2o.fem.element.element import Element
 from h2o.geometry.shape import Shape
@@ -12,16 +8,14 @@ from h2o.problem.material import Material
 from h2o.field.field import Field
 from h2o.h2o import *
 
-from scipy.sparse.linalg import spsolve
-from scipy.sparse import csr_matrix
-
-from mgis import behaviour as mgis_bv
+# from scipy.sparse.linalg import spsolve
+# from scipy.sparse import csr_matrix
+#
+# from mgis import behaviour as mgis_bv
 
 
 def clean_res_dir():
     """
-
-    Returns:
 
     """
     res_folder = os.path.join(get_project_path(), "res")
@@ -35,7 +29,6 @@ def clean_res_dir():
                 shutil.rmtree(file_path)
         except Exception as e:
             print("Failed to delete %s. Reason: %s" % (file_path, e))
-    return
 
 
 class Problem:
@@ -60,6 +53,7 @@ class Problem:
         loads: List[Load] = None,
         quadrature_type: QuadratureType = QuadratureType.GAUSS,
         tolerance: float = 1.0e-6,
+        res_folder: str = None
     ):
         """
 
@@ -84,6 +78,7 @@ class Problem:
         self.time_steps = time_steps
         self.number_of_iterations = iterations
         self.tolerance = tolerance
+        self.quadrature_type = quadrature_type
         # ------ build elements
         self.elements = self.get_elements()
         return
@@ -239,28 +234,64 @@ class Problem:
                         res_qdp_file.write("{},".format(strain_component))
                     for g_dir in range(self.field.gradient_dimension):
                         if self.field.grad_type == GradType.DISPLACEMENT_TRANSFORMATION_GRADIENT:
-                            F = np.zeros((3, 3), dtype=real)
-                            F[0, 0] = material.mat_data.s1.gradients[qp, 0]
-                            F[1, 1] = material.mat_data.s1.gradients[qp, 1]
-                            F[2, 2] = material.mat_data.s1.gradients[qp, 2]
-                            F[0, 1] = material.mat_data.s1.gradients[qp, 3]
-                            F[1, 0] = material.mat_data.s1.gradients[qp, 4]
-                            PK = np.zeros((3, 3), dtype=real)
-                            PK[0, 0] = material.mat_data.s1.thermodynamic_forces[qp, 0]
-                            PK[1, 1] = material.mat_data.s1.thermodynamic_forces[qp, 1]
-                            PK[2, 2] = material.mat_data.s1.thermodynamic_forces[qp, 2]
-                            PK[0, 1] = material.mat_data.s1.thermodynamic_forces[qp, 3]
-                            PK[1, 0] = material.mat_data.s1.thermodynamic_forces[qp, 4]
-                            J = np.linalg.det(F)
-                            # F_T_inv = np.linalg.inv(F.T)
-                            sig = (1.0 / J) * PK @ F.T
-                            sig_vect = np.zeros((5,), dtype=real)
-                            sig_vect[0] = sig[0, 0]
-                            sig_vect[1] = sig[1, 1]
-                            sig_vect[2] = sig[2, 2]
-                            sig_vect[3] = sig[0, 1]
-                            sig_vect[4] = sig[1, 0]
-                            stress_component = sig_vect[g_dir]
+                            if self.field.field_type in [FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN, FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRESS]:
+                                F = np.zeros((3, 3), dtype=real)
+                                F[0, 0] = material.mat_data.s1.gradients[qp, 0]
+                                F[1, 1] = material.mat_data.s1.gradients[qp, 1]
+                                F[2, 2] = material.mat_data.s1.gradients[qp, 2]
+                                F[0, 1] = material.mat_data.s1.gradients[qp, 3]
+                                F[1, 0] = material.mat_data.s1.gradients[qp, 4]
+                                PK = np.zeros((3, 3), dtype=real)
+                                PK[0, 0] = material.mat_data.s1.thermodynamic_forces[qp, 0]
+                                PK[1, 1] = material.mat_data.s1.thermodynamic_forces[qp, 1]
+                                PK[2, 2] = material.mat_data.s1.thermodynamic_forces[qp, 2]
+                                PK[0, 1] = material.mat_data.s1.thermodynamic_forces[qp, 3]
+                                PK[1, 0] = material.mat_data.s1.thermodynamic_forces[qp, 4]
+                                J = np.linalg.det(F)
+                                # F_T_inv = np.linalg.inv(F.T)
+                                sig = (1.0 / J) * PK @ F.T
+                                sig_vect = np.zeros((5,), dtype=real)
+                                sig_vect[0] = sig[0, 0]
+                                sig_vect[1] = sig[1, 1]
+                                sig_vect[2] = sig[2, 2]
+                                sig_vect[3] = sig[0, 1]
+                                sig_vect[4] = sig[1, 0]
+                                stress_component = sig_vect[g_dir]
+                            elif self.field.field_type == FieldType.DISPLACEMENT_LARGE_STRAIN:
+                                F = np.zeros((3, 3), dtype=real)
+                                F[0, 0] = material.mat_data.s1.gradients[qp, 0]
+                                F[1, 1] = material.mat_data.s1.gradients[qp, 1]
+                                F[2, 2] = material.mat_data.s1.gradients[qp, 2]
+                                F[0, 1] = material.mat_data.s1.gradients[qp, 3]
+                                F[1, 0] = material.mat_data.s1.gradients[qp, 4]
+                                F[0, 2] = material.mat_data.s1.gradients[qp, 5]
+                                F[2, 0] = material.mat_data.s1.gradients[qp, 6]
+                                F[1, 2] = material.mat_data.s1.gradients[qp, 7]
+                                F[2, 1] = material.mat_data.s1.gradients[qp, 8]
+                                PK = np.zeros((3, 3), dtype=real)
+                                PK[0, 0] = material.mat_data.s1.thermodynamic_forces[qp, 0]
+                                PK[1, 1] = material.mat_data.s1.thermodynamic_forces[qp, 1]
+                                PK[2, 2] = material.mat_data.s1.thermodynamic_forces[qp, 2]
+                                PK[0, 1] = material.mat_data.s1.thermodynamic_forces[qp, 3]
+                                PK[1, 0] = material.mat_data.s1.thermodynamic_forces[qp, 4]
+                                PK[0, 2] = material.mat_data.s1.thermodynamic_forces[qp, 5]
+                                PK[2, 0] = material.mat_data.s1.thermodynamic_forces[qp, 6]
+                                PK[1, 2] = material.mat_data.s1.thermodynamic_forces[qp, 7]
+                                PK[2, 1] = material.mat_data.s1.thermodynamic_forces[qp, 8]
+                                J = np.linalg.det(F)
+                                # F_T_inv = np.linalg.inv(F.T)
+                                sig = (1.0 / J) * PK @ F.T
+                                sig_vect = np.zeros((9,), dtype=real)
+                                sig_vect[0] = sig[0, 0]
+                                sig_vect[1] = sig[1, 1]
+                                sig_vect[2] = sig[2, 2]
+                                sig_vect[3] = sig[0, 1]
+                                sig_vect[4] = sig[1, 0]
+                                sig_vect[5] = sig[0, 2]
+                                sig_vect[6] = sig[2, 0]
+                                sig_vect[7] = sig[1, 2]
+                                sig_vect[8] = sig[2, 1]
+                                stress_component = sig_vect[g_dir]
                         elif self.field.grad_type == GradType.DISPLACEMENT_SMALL_STRAIN:
                             stress_component = material.mat_data.s1.thermodynamic_forces[qp, g_dir]
                         res_qdp_file.write("{},".format(stress_component))
@@ -308,10 +339,11 @@ class Problem:
         for cell_index in range(self.mesh.number_of_cells_in_mesh):
             cell_vertices_connectivity = self.mesh.cells_vertices_connectivity[cell_index]
             cell_faces_connectivity = self.mesh.cells_faces_connectivity[cell_index]
+            cell_ordering = self.mesh.cells_ordering[cell_index]
             cell_shape_type = self.mesh.cells_shape_types[cell_index]
             cell_vertices = self.mesh.vertices[:, cell_vertices_connectivity]
             # element_cell = Cell(cell_shape_type, cell_vertices, integration_order, quadrature_type=quadrature_type)
-            element_cell = Shape(cell_shape_type, cell_vertices)
+            element_cell = Shape(cell_shape_type, cell_vertices, connectivity=cell_ordering)
             element_faces = []
             element_faces_indices = []
             for global_face_index in cell_faces_connectivity:

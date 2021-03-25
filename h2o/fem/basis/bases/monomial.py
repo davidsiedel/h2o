@@ -58,6 +58,7 @@ def get_exponents(polynomial_order: int, euclidean_dimension: int) -> ndarray:
                     if not (l + m) > s:
                         n = s - (l + m)
                         exponents_matrix[row_count] = np.array([l, m, n], dtype=np.uint8)
+                        row_count += 1
     else:
         raise ValueError("forbidden euclidean dimension")
     return exponents_matrix

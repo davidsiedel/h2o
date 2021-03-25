@@ -16,9 +16,9 @@ np.set_printoptions(precision=16)
 np.set_printoptions(linewidth=1)
 
 
-class TestElementTriangle(TestCase):
+class TestOperators(TestCase):
 
-    def test_element_triangle(self):
+    def test_operators_triangle(self):
         euclidean_dimension = 2
         polynomial_orders = [1, 2, 3]
         element_types = [ElementType.HDG_LOW, ElementType.HDG_EQUAL, ElementType.HDG_HIGH]

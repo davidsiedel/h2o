@@ -1,6 +1,6 @@
 from h2o.geometry.geometry import *
 import h2o.geometry.quadratures.gauss.gauss_segment as gauss_segment
-from h2o.geometry.quadratures.gauss import QuadratureItem
+from h2o.geometry.quadratures.quadrature import *
 
 
 def get_segment_barycenter(vertices: ndarray) -> ndarray:
@@ -142,7 +142,7 @@ def get_segment_quadrature_weights(
     else:
         raise QuadratureError("no such quadrature type as {}".format(quadrature_type))
     for i, jaco in enumerate(jacobian_operators):
-        jacobian_weights[i] = jaco[0] @ projected_vertices[0, :]
+        jacobian_weights[i] = np.abs(jaco[0] @ projected_vertices[0, :])
     quadrature_weights = quadrature_reference_weights * jacobian_weights
     return quadrature_weights
 

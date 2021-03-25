@@ -1,4 +1,13 @@
-def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
+from h2o.problem.problem import Problem, clean_res_dir
+from h2o.problem.material import Material
+from h2o.h2o import *
+
+from mgis import behaviour as mgis_bv
+from scipy.sparse.linalg import spsolve
+from scipy.sparse import csr_matrix
+import matplotlib.pyplot as plt
+
+def solve_newton_exact(problem: Problem, material: Material, verbose: bool = False, debug_mode: DebugMode = DebugMode.NONE):
     """
 
     Args:
@@ -8,22 +17,20 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
 
     """
     clean_res_dir()
-    _dx = self.field.field_dimension
-    _fk = self.finite_element.face_basis_k.dimension
-    _cl = self.finite_element.cell_basis_l.dimension
+    _dx = problem.field.field_dimension
+    _fk = problem.finite_element.face_basis_k.dimension
+    _cl = problem.finite_element.cell_basis_l.dimension
     external_forces_coefficient = 1.0
     normalization_lagrange_coefficient = material.lagrange_parameter
     # ----------------------------------------------------------------------------------------------------------
     # SET SYSTEM SIZE
     # ----------------------------------------------------------------------------------------------------------
-    _constrained_system_size, _system_size = systm.get_total_system_size(
-        self.field, self.finite_element, self.mesh, self.boundary_conditions
-    )
+    _constrained_system_size, _system_size = problem.get_total_system_size()
     faces_unknown_vector = np.zeros((_constrained_system_size), dtype=real)
     faces_unknown_vector_previous_step = np.zeros((_constrained_system_size), dtype=real)
     residual_values = []
     correction = np.zeros((_constrained_system_size), dtype=real)
-    for time_step_index, time_step in enumerate(self.time_steps):
+    for time_step_index, time_step in enumerate(problem.time_steps):
         # --- SET TEMPERATURE
         material.set_temperature()
         # --- PRINT DATA
@@ -31,105 +38,16 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
         print("TIME_STEP : {} | LOAD_VALUE : {}".format(time_step_index, time_step))
         # --- WRITE RES FILES
         file_suffix = "{}".format(time_step_index).zfill(6)
-        self.create_vertex_res_files(file_suffix)
-        self.create_quadrature_points_res_files(file_suffix, material)
+        problem.create_vertex_res_files(file_suffix)
+        problem.create_quadrature_points_res_files(file_suffix, material)
         # correction = np.zeros((_constrained_system_size),dtype=real)
         # --- RESET DISPLACEMENT
         reset_displacement = False
         if reset_displacement:
             faces_unknown_vector = np.zeros((_constrained_system_size), dtype=real)
-            for element in self.elements:
+            for element in problem.elements:
                 element.cell_unknown_vector = np.zeros((_dx * _cl,), dtype=real)
-        for iteration in range(self.number_of_iterations):
-            if check:
-                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                # CHECK ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-                noise_tolerance = 1.0e-6
-                noise = noise_tolerance * np.max(np.abs(np.copy(faces_unknown_vector[:_system_size])))
-                numerical_forces_bs_0 = [
-                    np.zeros((element.element_size, element.element_size), dtype=real) for element in self.elements
-                ]
-                numerical_forces_as_0 = [
-                    np.zeros((element.element_size, element.element_size), dtype=real) for element in self.elements
-                ]
-                numerical_unknowns_0 = [
-                    np.zeros((element.element_size, element.element_size), dtype=real) for element in self.elements
-                ]
-                for epsi_dir in range(self.elements[0].element_size):
-                    _qp = 0
-                    for _element_index, element in enumerate(self.elements):
-                        # --- GET ELEMENT UNKNOWN INCREMENT
-                        element_unknown_vector = element.get_element_unknown_vector(
-                            self.field, self.finite_element, faces_unknown_vector
-                        )
-                        numerical_unknowns_0[_element_index][:, epsi_dir] += np.copy(element_unknown_vector)
-                        numerical_unknowns_0[_element_index][epsi_dir, epsi_dir] += noise
-                        for _qc in range(len(element.cell.quadrature_weights)):
-                            _w_q_c = element.cell.quadrature_weights[_qc]
-                            _x_q_c = element.cell.quadrature_points[:, _qc]
-                            transformation_gradient_0 = element.gradients_operators[_qc] @ numerical_unknowns_0[
-                                                                                               _element_index][:,
-                                                                                           epsi_dir]
-                            material.mat_data.s1.gradients[_qp] = transformation_gradient_0
-                            integ_res = mgis_bv.integrate(
-                                material.mat_data, material.integration_type, 0.0, _qp, (_qp + 1)
-                            )
-                            numerical_forces_bs_0[_element_index][:, epsi_dir] += _w_q_c * (
-                                    element.gradients_operators[_qc].T @ material.mat_data.s1.thermodynamic_forces[_qp]
-                            )
-                            _qp += 1
-                    mgis_bv.revert(material.mat_data)
-                for _element_index, element in enumerate(self.elements):
-                    numerical_forces_as_0[_element_index] += numerical_forces_bs_0[_element_index]
-                    for epsi_dir in range(self.elements[0].element_size):
-                        numerical_forces_as_0[_element_index][:, epsi_dir] += (
-                                material.stabilization_parameter
-                                * element.stabilization_operator
-                                @ numerical_unknowns_0[_element_index][:, epsi_dir]
-                        )
-                numerical_forces_bs_1 = [
-                    np.zeros((element.element_size, element.element_size), dtype=real) for element in self.elements
-                ]
-                numerical_forces_as_1 = [
-                    np.zeros((element.element_size, element.element_size), dtype=real) for element in self.elements
-                ]
-                numerical_unknowns_1 = [
-                    np.zeros((element.element_size, element.element_size), dtype=real) for element in self.elements
-                ]
-                for epsi_dir in range(self.elements[0].element_size):
-                    _qp = 0
-                    for _element_index, element in enumerate(self.elements):
-                        # --- GET ELEMENT UNKNOWN INCREMENT
-                        element_unknown_increment = element.get_element_unknown_vector(
-                            self.field, self.finite_element, faces_unknown_vector
-                        )
-                        numerical_unknowns_1[_element_index][:, epsi_dir] += np.copy(element_unknown_increment)
-                        numerical_unknowns_1[_element_index][epsi_dir, epsi_dir] -= noise
-                        for _qc in range(len(element.cell.quadrature_weights)):
-                            _w_q_c = element.cell.quadrature_weights[_qc]
-                            _x_q_c = element.cell.quadrature_points[:, _qc]
-                            transformation_gradient_1 = element.gradients_operators[_qc] @ numerical_unknowns_1[
-                                                                                               _element_index][:,
-                                                                                           epsi_dir]
-                            material.mat_data.s1.gradients[_qp] = transformation_gradient_1
-                            integ_res = mgis_bv.integrate(
-                                material.mat_data, material.integration_type, 0.0, _qp, (_qp + 1)
-                            )
-                            numerical_forces_bs_1[_element_index][:, epsi_dir] += _w_q_c * (
-                                    element.gradients_operators[_qc].T @ material.mat_data.s1.thermodynamic_forces[_qp]
-                            )
-                            _qp += 1
-                    mgis_bv.revert(material.mat_data)
-                for _element_index, element in enumerate(self.elements):
-                    numerical_forces_as_1[_element_index] = +numerical_forces_bs_1[_element_index]
-                    for epsi_dir in range(self.elements[0].element_size):
-                        numerical_forces_as_1[_element_index][:, epsi_dir] += (
-                                material.stabilization_parameter
-                                * element.stabilization_operator
-                                @ numerical_unknowns_1[_element_index][:, epsi_dir]
-                        )
-                # CHECK ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        for iteration in range(problem.number_of_iterations):
             # --------------------------------------------------------------------------------------------------
             # SET SYSTEM MATRIX AND VECTOR
             # --------------------------------------------------------------------------------------------------
@@ -141,7 +59,7 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
             if time_step_index == 0:
                 _dt = time_step
             else:
-                _dt = time_step - self.time_steps[time_step_index - 1]
+                _dt = time_step - problem.time_steps[time_step_index - 1]
                 _dt = np.float64(_dt)
             # --------------------------------------------------------------------------------------------------
             # FOR ELEMENT LOOP
@@ -151,13 +69,13 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
             stab_inf = np.inf
             iter_face_constraint = 0
             if False:
-                for element in self.elements:
+                for element in problem.elements:
                     for _qc in range(len(element.cell.quadrature_weights)):
                         _w_q_c = element.cell.quadrature_weights[_qc]
                         _x_q_c = element.cell.quadrature_points[:, _qc]
                         # --- COMPUTE STRAINS AND SET THEM IN THE BEHAVIOUR LAW
                         transformation_gradient = element.get_transformation_gradient(
-                            self.field, self.finite_element, faces_unknown_vector, _qc
+                            problem.field, problem.finite_element, faces_unknown_vector, _qc
                         )
                         material.mat_data.s1.gradients[_qp] = transformation_gradient
                         # --- INTEGRATE BEHAVIOUR LAW
@@ -170,7 +88,18 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
                         _qp += 1
                     mgis_bv.revert(material.mat_data)
             _qp = 0
-            for _element_index, element in enumerate(self.elements):
+            for _element_index, element in enumerate(problem.elements):
+                cell_quadrature_size = element.cell.get_quadrature_size(
+                    problem.finite_element.construction_integration_order, quadrature_type=problem.quadrature_type
+                )
+                cell_quadrature_points = element.cell.get_quadrature_points(
+                    problem.finite_element.construction_integration_order, quadrature_type=problem.quadrature_type
+                )
+                cell_quadrature_weights = element.cell.get_quadrature_weights(
+                    problem.finite_element.construction_integration_order, quadrature_type=problem.quadrature_type
+                )
+                x_c = element.cell.get_centroid()
+                h_c = element.cell.get_diameter()
                 print("ELEMENT : {}".format(_element_index))
                 # --- GET FACES LOCAL CORRECTION
                 local_faces_correction = np.zeros((len(element.faces) * _dx * _fk), dtype=real)
@@ -180,7 +109,7 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
                     )
                 # --- LOCAL NEWTON
                 number_of_local_iterations = 20
-                # local_tolerance = self.tolerance
+                # local_tolerance = problem.tolerance
                 local_tolerance = 1.e-4
                 R_cell_value_previous = np.inf
                 for _local_iteration in range(number_of_local_iterations):
@@ -192,12 +121,12 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
                     element_external_forces = np.zeros((element.element_size,), dtype=real)
                     # --- RUN OVER EACH QUADRATURE POINT
                     _local_qp = 0
-                    for _qc in range(len(element.cell.quadrature_weights)):
-                        _w_q_c = element.cell.quadrature_weights[_qc]
-                        _x_q_c = element.cell.quadrature_points[:, _qc]
+                    for _qc in range(cell_quadrature_size):
+                        _w_q_c = cell_quadrature_weights[_qc]
+                        _x_q_c = cell_quadrature_points[:, _qc]
                         # --- COMPUTE STRAINS AND SET THEM IN THE BEHAVIOUR LAW
                         transformation_gradient = element.get_transformation_gradient(
-                            self.field, self.finite_element, faces_unknown_vector, _qc
+                            faces_unknown_vector, _qc
                         )
                         material.mat_data.s1.gradients[_qp] = transformation_gradient
                         # --- INTEGRATE BEHAVIOUR LAW
@@ -205,10 +134,10 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
                         # stored_energies', 'dissipated_energies', 'internal_state_variables
                         # print(material.mat_data.s1.internal_state_variables)
                         # --- VOLUMETRIC FORCES
-                        v = self.finite_element.cell_basis_l.evaluate_function(
-                            _x_q_c, element.cell.shape.centroid, element.cell.shape.diameter
+                        v = problem.finite_element.cell_basis_l.evaluate_function(
+                            _x_q_c, x_c, h_c
                         )
-                        for load in self.loads:
+                        for load in problem.loads:
                             vl = _w_q_c * v * load.function(time_step, _x_q_c)
                             _re0 = load.direction * _cl
                             _re1 = (load.direction + 1) * _cl
@@ -230,18 +159,18 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
                                                                                        element_internal_forces))
                     # --- STAB PARAMETER CHANGE
                     stab_param = stab_coef * material.stabilization_parameter
-                    if check and iteration > 0:
-                        numerical_element_stiffness_matrix = (
-                                                                     numerical_forces_bs_0[_element_index] -
-                                                                     numerical_forces_bs_1[_element_index]
-                                                             ) / (2.0 * noise)
-                        check_num = np.max(
-                            np.abs(numerical_element_stiffness_matrix - element_stiffness_matrix)
-                        ) / np.max(np.abs(element_stiffness_matrix))
-                        if check_num > noise_tolerance:
-                            print(
-                                "AT ELEM : {} | CHECK_BEFORE_STAB : {}".format(str(_element_index).zfill(6), check_num)
-                            )
+                    # if check and iteration > 0:
+                    #     numerical_element_stiffness_matrix = (
+                    #                                                  numerical_forces_bs_0[_element_index] -
+                    #                                                  numerical_forces_bs_1[_element_index]
+                    #                                          ) / (2.0 * noise)
+                    #     check_num = np.max(
+                    #         np.abs(numerical_element_stiffness_matrix - element_stiffness_matrix)
+                    #     ) / np.max(np.abs(element_stiffness_matrix))
+                    #     if check_num > noise_tolerance:
+                    #         print(
+                    #             "AT ELEM : {} | CHECK_BEFORE_STAB : {}".format(str(_element_index).zfill(6), check_num)
+                    #         )
                     # --- ADDING STABILIZATION CONTRIBUTION AT THE ELEMENT LEVEL
                     element_stiffness_matrix += stab_param * element.stabilization_operator
                     # element_stiffness_matrix -= stab_param * element.stabilization_operator
@@ -249,7 +178,7 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
                     element_internal_forces += (
                             stab_param
                             * element.stabilization_operator
-                            @ element.get_element_unknown_vector(self.field, self.finite_element, faces_unknown_vector)
+                            @ element.get_element_unknown_vector(faces_unknown_vector)
                     )
                     # --- MATRIX VECTOR DECOMPOSITION
                     K_cc = element_stiffness_matrix[:_c0_c, :_c0_c]
@@ -275,7 +204,7 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
                     # print("LOCAL_EXTERNAL_FORCES_COEF : {}".format(local_external_forces_coefficient))
                     R_cell = R_cc
                     local_residual_evaluation = np.max(np.abs(R_cell) / local_external_forces_coefficient)
-                    local_residual_evaluation = np.max(np.abs(cell_correction))
+                    # local_residual_evaluation = np.max(np.abs(cell_correction))
                     # if local_residual_evaluation > R_cell_value_previous:
                     #     print("!!!! RESIUDAL INCREASE :\n {}".format(element.cell.quadrature_points))
                     # R_cell_value_previous = local_residual_evaluation
@@ -290,7 +219,7 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
                 # element_internal_forces -= (
                 #     stab_param
                 #     * element.stabilization_operator
-                #     @ element.get_element_unknown_vector(self.field, self.finite_element, faces_unknown_vector)
+                #     @ element.get_element_unknown_vector(problem.field, problem.finite_element, faces_unknown_vector)
                 # )
                 # --------------------------------------------------------------------------------------------------
                 # CONDENSATION
@@ -331,50 +260,51 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
                 # --- SET EXTERNAL FORCES COEFFICIENT
                 if np.max(np.abs(element_external_forces)) > external_forces_coefficient:
                     external_forces_coefficient = np.max(np.abs(element_external_forces))
-                if check and iteration > 0:
-                    numerical_element_stiffness_matrix = (
-                                                                 numerical_forces_as_0[_element_index] -
-                                                                 numerical_forces_as_1[_element_index]
-                                                         ) / (2.0 * noise)
-                    check_num = np.max(
-                        np.abs(numerical_element_stiffness_matrix - element_stiffness_matrix)
-                    ) / np.max(np.abs(element_stiffness_matrix))
-                    if check_num > noise_tolerance:
-                        print(
-                            "AT ELEM : {} | CHECK_BEFORE_STAB : {}".format(str(_element_index).zfill(6), check_num)
-                        )
+                # if check and iteration > 0:
+                #     numerical_element_stiffness_matrix = (
+                #                                                  numerical_forces_as_0[_element_index] -
+                #                                                  numerical_forces_as_1[_element_index]
+                #                                          ) / (2.0 * noise)
+                #     check_num = np.max(
+                #         np.abs(numerical_element_stiffness_matrix - element_stiffness_matrix)
+                #     ) / np.max(np.abs(element_stiffness_matrix))
+                #     if check_num > noise_tolerance:
+                #         print(
+                #             "AT ELEM : {} | CHECK_BEFORE_STAB : {}".format(str(_element_index).zfill(6), check_num)
+                #         )
                 if verbose:
-                    print("ELEM : {} | INTERNAL_FORCES_AFTER STAB : \n {}".format(_element_index,
-                                                                                  element_internal_forces))
-                    _iv0 = _element_index * len(element.cell.quadrature_weights)
-                    _iv1 = (_element_index + 1) * len(element.cell.quadrature_weights)
-                    print("ELEM : {} | DISPLACEMENT S0 : \n {}".format(_element_index,
-                                                                       element.get_element_unknown_vector(self.field,
-                                                                                                          self.finite_element,
-                                                                                                          faces_unknown_vector_previous_step)))
-                    print("ELEM : {} | GRADIENTS S0 : \n {}".format(_element_index,
-                                                                    material.mat_data.s0.gradients[_iv0:_iv1]))
-                    print("ELEM : {} | DISPLACEMENT S1 : \n {}".format(_element_index,
-                                                                       element.get_element_unknown_vector(self.field,
-                                                                                                          self.finite_element,
-                                                                                                          faces_unknown_vector)))
-                    print("ELEM : {} | GRADIENTS S1 : \n {}".format(_element_index,
-                                                                    material.mat_data.s1.gradients[_iv0:_iv1]))
-                    if not material.behaviour_name == "Elasticity":
-                        print("ELEM : {} | INTERNAL_STATE_VARIABLES S0 : \n {}".format(_element_index,
-                                                                                       material.mat_data.s0.internal_state_variables[
-                                                                                       _iv0:_iv1]))
-                        print("ELEM : {} | INTERNAL_STATE_VARIABLES S1 : \n {}".format(_element_index,
-                                                                                       material.mat_data.s1.internal_state_variables[
-                                                                                       _iv0:_iv1]))
+                    pass
+                    # print("ELEM : {} | INTERNAL_FORCES_AFTER STAB : \n {}".format(_element_index,
+                    #                                                               element_internal_forces))
+                    # _iv0 = _element_index * len(element.cell.quadrature_weights)
+                    # _iv1 = (_element_index + 1) * len(element.cell.quadrature_weights)
+                    # print("ELEM : {} | DISPLACEMENT S0 : \n {}".format(_element_index,
+                    #                                                    element.get_element_unknown_vector(problem.field,
+                    #                                                                                       problem.finite_element,
+                    #                                                                                       faces_unknown_vector_previous_step)))
+                    # print("ELEM : {} | GRADIENTS S0 : \n {}".format(_element_index,
+                    #                                                 material.mat_data.s0.gradients[_iv0:_iv1]))
+                    # print("ELEM : {} | DISPLACEMENT S1 : \n {}".format(_element_index,
+                    #                                                    element.get_element_unknown_vector(problem.field,
+                    #                                                                                       problem.finite_element,
+                    #                                                                                       faces_unknown_vector)))
+                    # print("ELEM : {} | GRADIENTS S1 : \n {}".format(_element_index,
+                    #                                                 material.mat_data.s1.gradients[_iv0:_iv1]))
+                    # if not material.behaviour_name == "Elasticity":
+                    #     print("ELEM : {} | INTERNAL_STATE_VARIABLES S0 : \n {}".format(_element_index,
+                    #                                                                    material.mat_data.s0.internal_state_variables[
+                    #                                                                    _iv0:_iv1]))
+                    #     print("ELEM : {} | INTERNAL_STATE_VARIABLES S1 : \n {}".format(_element_index,
+                    #                                                                    material.mat_data.s1.internal_state_variables[
+                    #                                                                    _iv0:_iv1]))
                 # --- BOUNDARY CONDITIONS
-                for boundary_condition in self.boundary_conditions:
+                for boundary_condition in problem.boundary_conditions:
                     # --- DISPLACEMENT CONDITIONS
                     if boundary_condition.boundary_type == BoundaryType.DISPLACEMENT:
                         for f_local, f_global in enumerate(element.faces_indices):
                             if (
                                     f_global
-                                    in self.mesh.faces_boundaries_connectivity[boundary_condition.boundary_name]
+                                    in problem.mesh.faces_boundaries_connectivity[boundary_condition.boundary_name]
                             ):
                                 _l0 = _system_size + iter_face_constraint * _fk
                                 _l1 = _system_size + (iter_face_constraint + 1) * _fk
@@ -390,24 +320,33 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
                                 face_displacement = faces_unknown_vector[_r0:_r1]
                                 _m_psi_psi_face = np.zeros((_fk, _fk), dtype=real)
                                 _v_face_imposed_displacement = np.zeros((_fk,), dtype=real)
-                                for _qf in range(len(element.faces[f_local].quadrature_weights)):
-                                    _x_q_f = element.faces[f_local].quadrature_points[:, _qf]
-                                    _w_q_f = element.faces[f_local].quadrature_weights[_qf]
-                                    v = self.finite_element.face_basis_k.evaluate_function(
-                                        _x_q_f,
-                                        element.faces[f_local].shape.centroid,
-                                        element.faces[f_local].shape.diameter,
-                                    )
+                                face = element.faces[f_local]
+                                x_f = face.get_centroid()
+                                h_f = face.get_diameter()
+                                face_rot = face.get_rotation_matrix()
+                                face_quadrature_size = face.get_quadrature_size(
+                                    problem.finite_element.construction_integration_order,
+                                    quadrature_type=problem.quadrature_type,
+                                )
+                                face_quadrature_points = face.get_quadrature_points(
+                                    problem.finite_element.construction_integration_order,
+                                    quadrature_type=problem.quadrature_type,
+                                )
+                                face_quadrature_weights = face.get_quadrature_weights(
+                                    problem.finite_element.construction_integration_order,
+                                    quadrature_type=problem.quadrature_type,
+                                )
+                                for _qf in range(face_quadrature_size):
+                                    _x_q_f = face_quadrature_points[:, _qf]
+                                    _w_q_f = face_quadrature_weights[_qf]
+                                    _s_q_f = (face_rot @ _x_q_f)[:-1]
+                                    _s_f = (face_rot @ x_f)[:-1]
+                                    v = problem.finite_element.face_basis_k.evaluate_function(_s_q_f, _s_f, h_f)
                                     _v_face_imposed_displacement += (
                                             _w_q_f * v * boundary_condition.function(time_step, _x_q_f)
                                     )
-                                    _m_psi_psi_face += blocks.get_face_mass_matrix_in_face(
-                                        element.faces[f_local],
-                                        self.finite_element.face_basis_k,
-                                        self.finite_element.face_basis_k,
-                                        _x_q_f,
-                                        _w_q_f,
-                                    )
+                                    _psi_k = problem.finite_element.face_basis_k.evaluate_function(_s_q_f, _s_f, h_f)
+                                    _m_psi_psi_face += _w_q_f * np.tensordot(_psi_k, _psi_k, axes=0)
                                 _m_psi_psi_face_inv = np.linalg.inv(_m_psi_psi_face)
                                 if debug_mode == 0:
                                     print("FACE MASS MATRIX IN DIRICHLET BOUND COND :")
@@ -447,16 +386,32 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
                         for f_local, f_global in enumerate(element.faces_indices):
                             if (
                                     f_global
-                                    in self.mesh.faces_boundaries_connectivity[boundary_condition.boundary_name]
+                                    in problem.mesh.faces_boundaries_connectivity[boundary_condition.boundary_name]
                             ):
-                                for qf in range(len(element.faces[f_local].quadrature_weights)):
-                                    _x_q_f = element.faces[f_local].quadrature_points[:, qf]
-                                    _w_q_f = element.faces[f_local].quadrature_weights[qf]
-                                    v = self.finite_element.face_basis_k.evaluate_function(
-                                        _x_q_f,
-                                        element.faces[f_local].shape.centroid,
-                                        element.faces[f_local].shape.diameter,
-                                    )
+                                face = element.faces[f_local]
+                                x_f = face.get_centroid()
+                                h_f = face.get_diameter()
+                                face_rot = face.get_rotation_matrix()
+                                face_quadrature_size = face.get_quadrature_size(
+                                    problem.finite_element.construction_integration_order,
+                                    quadrature_type=problem.quadrature_type,
+                                )
+                                face_quadrature_points = face.get_quadrature_points(
+                                    problem.finite_element.construction_integration_order,
+                                    quadrature_type=problem.quadrature_type,
+                                )
+                                face_quadrature_weights = face.get_quadrature_weights(
+                                    problem.finite_element.construction_integration_order,
+                                    quadrature_type=problem.quadrature_type,
+                                )
+                                for _qf in range(face_quadrature_size):
+                                    # _h_f = element.faces[f_local].shape.diameter
+                                    # _x_f = element.faces[f_local].shape.centroid
+                                    _x_q_f = face_quadrature_points[:, _qf]
+                                    _w_q_f = face_quadrature_weights[_qf]
+                                    _s_q_f = (face_rot @ _x_q_f)[:-1]
+                                    _s_f = (face_rot @ x_f)[:-1]
+                                    v = problem.finite_element.face_basis_k.evaluate_function(_s_q_f, _s_f, h_f)
                                     vf = _w_q_f * v * boundary_condition.function(time_step, _x_q_f)
                                     # _c0 = _dx * _cl + f_local * _dx * _fk + boundary_condition.direction * _fk
                                     # _c1 = _dx * _cl + f_local * _dx * _fk + (boundary_condition.direction + 1) * _fk
@@ -476,15 +431,15 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
             print("ITER : {} | RES_MAX : {}".format(str(iteration).zfill(4), residual_evaluation))
             # print("ITER : {} | =====================================================================".format(str(iteration).zfill(4)))
             # residual_values.append(residual_evaluation)
-            # if residual_evaluation < self.tolerance:
-            if residual_evaluation < self.tolerance or iteration == self.number_of_iterations - 1:
+            # if residual_evaluation < problem.tolerance:
+            if residual_evaluation < problem.tolerance or iteration == problem.number_of_iterations - 1:
                 # ----------------------------------------------------------------------------------------------
                 # UPDATE INTERNAL VARIABLES
                 # ----------------------------------------------------------------------------------------------
                 mgis_bv.update(material.mat_data)
                 print("ITERATIONS : {}".format(iteration + 1))
-                self.write_vertex_res_files(file_suffix, faces_unknown_vector)
-                self.write_quadrature_points_res_files(file_suffix, material, faces_unknown_vector)
+                problem.write_vertex_res_files(file_suffix, faces_unknown_vector)
+                problem.write_quadrature_points_res_files(file_suffix, material, faces_unknown_vector)
                 faces_unknown_vector_previous_step += faces_unknown_vector
                 residual_values.append(residual_evaluation)
                 break
@@ -507,7 +462,7 @@ def solve_newton_exact(self, material: Material, verbose: bool, check: bool):
                     print("R_K_RES_NORMALIZED : \n {}".format(
                         (residual - tangent_matrix @ correction) / external_forces_coefficient))
     plt.plot(range(len(residual_values)), residual_values, label="residual")
-    plt.plot(range(len(residual_values)), [self.tolerance for local_i in range(len(residual_values))],
+    plt.plot(range(len(residual_values)), [problem.tolerance for local_i in range(len(residual_values))],
              label="tolerance")
     plt.ylabel("resiudal after convergence")
     plt.xlabel("time step index")
