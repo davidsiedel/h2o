@@ -1,4 +1,5 @@
 import h2o.mesh.parsers.geof as geof
+import h2o.mesh.gmsh.expprt as mshh
 import h2o.geometry.shape as shp
 from h2o.h2o import *
 
@@ -66,7 +67,9 @@ class Mesh:
         """
         if ".geof" in mesh_file_path:
             vertices = geof.get_vertices(mesh_file_path)
-            (cells_vertices_connectivity, cells_ordering, cells_shapes, cells_labels) = geof.get_cells_data(mesh_file_path)
+            (cells_vertices_connectivity, cells_ordering, cells_shapes, cells_labels) = geof.get_cells_data(
+                mesh_file_path
+            )
             (faces_vertices_connectivity, cells_faces_connectivity, faces_shapes) = geof.get_faces_data(
                 cells_vertices_connectivity, cells_labels
             )
@@ -90,8 +93,12 @@ class Mesh:
             # self.number_of_cell_quadrature_points_in_mesh = get_number_of_quadrature_points_in_mesh(
             #     cells_shapes, integration_order, quadrature_type=quadrature_type
             # )
-            self.number_of_cell_quadrature_points_in_mesh = self.get_number_of_cell_quadrature_points_in_mesh(integration_order, quadrature_type=quadrature_type)
-            self.number_of_face_quadrature_points_in_mesh = self.get_number_of_face_quadrature_points_in_mesh(integration_order, quadrature_type=quadrature_type)
+            self.number_of_cell_quadrature_points_in_mesh = self.get_number_of_cell_quadrature_points_in_mesh(
+                integration_order, quadrature_type=quadrature_type
+            )
+            self.number_of_face_quadrature_points_in_mesh = self.get_number_of_face_quadrature_points_in_mesh(
+                integration_order, quadrature_type=quadrature_type
+            )
             # n_fq = 0
             # for _f in range(self.number_of_faces_in_mesh):
             #     face_vertices = self.vertices[:, self.faces_vertices_connectivity[_f]]
@@ -105,6 +112,46 @@ class Mesh:
             # )
             self.vertices_weights_cell = geof.get_vertices_weights(mesh_file_path, cells_vertices_connectivity)
             self.vertices_weights_face = geof.get_vertices_weights(mesh_file_path, faces_vertices_connectivity)
+        elif ".msh" in mesh_file_path:
+            (
+                vertices,
+                euclidean_dimension,
+                cells_vertices_connectivity,
+                cells_ordering,
+                cells_shape_types,
+                faces_vertices_connectivity,
+                faces_shape_types,
+                cells_faces_connectivity,
+                vertices_boundaries_connectivity,
+                faces_boundaries_connectivity,
+                number_of_vertices_in_mesh,
+                number_of_cells_in_mesh,
+                number_of_faces_in_mesh,
+                vertices_weights_cell_wise,
+                vertices_weights_face_wise,
+            ) = mshh.build_mesh(mesh_file_path)
+            self.vertices = vertices
+            self.euclidean_dimension = euclidean_dimension
+            self.cells_vertices_connectivity = cells_vertices_connectivity
+            self.cells_ordering = cells_ordering
+            self.cells_shape_types = cells_shape_types
+            self.faces_vertices_connectivity = faces_vertices_connectivity
+            self.faces_shape_types = faces_shape_types
+            self.cells_faces_connectivity = cells_faces_connectivity
+            self.vertices_boundaries_connectivity = vertices_boundaries_connectivity
+            self.faces_boundaries_connectivity = faces_boundaries_connectivity
+            self.number_of_vertices_in_mesh = number_of_vertices_in_mesh
+            self.number_of_cells_in_mesh = number_of_cells_in_mesh
+            self.number_of_faces_in_mesh = number_of_faces_in_mesh
+            self.vertices_weights_cell = vertices_weights_cell_wise
+            self.vertices_weights_face = vertices_weights_face_wise
+            self.number_of_cell_quadrature_points_in_mesh = self.get_number_of_cell_quadrature_points_in_mesh(
+                integration_order, quadrature_type=quadrature_type
+            )
+            self.number_of_face_quadrature_points_in_mesh = self.get_number_of_face_quadrature_points_in_mesh(
+                integration_order, quadrature_type=quadrature_type
+            )
+            # print(self.faces_boundaries_connectivity)
         else:
             raise IOError("unsupported mesh file format")
 
@@ -152,7 +199,10 @@ class Mesh:
             face_vertices = self.vertices[:, self.faces_vertices_connectivity[_f]]
             face_shape_type = self.faces_shape_types[_f]
             n = shp.get_quadrature_size(
-                face_shape_type, face_vertices, integration_order, quadrature_type=quadrature_type,
+                face_shape_type,
+                face_vertices,
+                integration_order,
+                quadrature_type=quadrature_type,
             )
             n_fq += n
         return n_fq
@@ -175,7 +225,11 @@ class Mesh:
             cell_shape_type = self.cells_shape_types[_c]
             cell_connectivity = self.cells_ordering[_c]
             n = shp.get_quadrature_size(
-                cell_shape_type, cell_vertices, integration_order, connectivity=cell_connectivity, quadrature_type=quadrature_type,
+                cell_shape_type,
+                cell_vertices,
+                integration_order,
+                connectivity=cell_connectivity,
+                quadrature_type=quadrature_type,
             )
             n_cq += n
         return n_cq

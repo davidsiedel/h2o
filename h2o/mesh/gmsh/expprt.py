@@ -1,13 +1,8 @@
-import numpy as np
-
-# from typing import Union, List, Tuple
-# from dataclasses import dataclass
-
-from data import *
+from h2o.mesh.gmsh.data import *
 
 
 @dataclass(frozen=True)
-class PhysicalName:
+class PhysicalEntity:
     dim: int
     tag: int
     label: str
@@ -40,7 +35,7 @@ class DataStructure:
 
 
 @dataclass(frozen=True)
-class Node:
+class NodeEntity:
     entity_dim: int
     entity_tag: int
     tag: int
@@ -139,21 +134,21 @@ def get_problem_euclidean_dimension(
         raise ValueError("NO")
 
 
-def read_msh_file(msh_file_path: str) -> (DataStructure, List[Node], List[ElementEntity], int):
+def read_msh_file(msh_file_path: str) -> (DataStructure, List[NodeEntity], List[ElementEntity], int):
     with open(msh_file_path, "r") as msh_file:
         # --- READ MESH FILE
         c = msh_file.readlines()
         line_index = 4
         # --- PHYSICAL NAMES
         num_physical_entities = int(c[line_index])
-        physical_entities_list = []
+        physical_entities = []
         for i in range(num_physical_entities):
             line = c[i + line_index + 1].rstrip().split(" ")
             dim = int(line[0])
             tag = int(line[1])
-            label = str(line[2])
-            pe = PhysicalName(dim, tag, label)
-            physical_entities_list.append(pe)
+            label = line[2].replace("\"", "")
+            pe = PhysicalEntity(dim, tag, label)
+            physical_entities.append(pe)
         line_index += num_physical_entities
         offset = 3
         line_index += offset
@@ -170,7 +165,7 @@ def read_msh_file(msh_file_path: str) -> (DataStructure, List[Node], List[Elemen
         surfaces_data, line_index = get_domain_data(num_surfaces, line_index, c, DomainType.SURFACE)
         volumes_data, line_index = get_domain_data(num_volumes, line_index, c, DomainType.VOLUME)
         # --- STRUCTURE
-        ds = DataStructure(
+        data_structure = DataStructure(
             num_points,
             num_curves,
             num_surfaces,
@@ -188,7 +183,7 @@ def read_msh_file(msh_file_path: str) -> (DataStructure, List[Node], List[Elemen
         min_node_tag = int(line[2])
         max_node_tag = int(line[3])
         # vertices = np.zeros((euclidean_dimension, num_nodes))
-        nodes = []
+        node_entities = []
         # ------------------------------------------------
         for entity_count in range(num_entity_blocks):
             line_index += 1
@@ -210,8 +205,8 @@ def read_msh_file(msh_file_path: str) -> (DataStructure, List[Node], List[Elemen
                 y_pos = float(line[1])
                 z_pos = float(line[2])
                 # vertices[:, nodes_tags[i_loc]] = np.array([x_pos, y_pos, z_pos][:euclidean_dimension])
-                node = Node(entity_dim, entity_tag, nodes_tags[i_loc], x_pos, y_pos, z_pos)
-                nodes.append(node)
+                node = NodeEntity(entity_dim, entity_tag, nodes_tags[i_loc], x_pos, y_pos, z_pos)
+                node_entities.append(node)
         # --- $ELEMENTS
         line_index += 3
         line = c[line_index].rstrip().split(" ")
@@ -240,37 +235,154 @@ def read_msh_file(msh_file_path: str) -> (DataStructure, List[Node], List[Elemen
                     elems_vertices_connectivity[v_count] = int(line[v_count + 1])
                 ee = ElementEntity(entity_dim, entity_tag, element_type, loc_tag, list(elems_vertices_connectivity))
                 element_entities.append(ee)
-        # for ee_item in element_entities:
-        #     print("--")
-        #     print(ee_item.tag)
-        #     print(ee_item.entity_dim)
-        #     print(ee_item.entity_tag)
-        #     # print(corr[ee_item.element_type][0])
-        #     print("ee_item.element_type : {}".format(ee_item.element_type))
-        #     print(get_element_data(ee_item.element_type))
-        #     print(ee_item.vertices_connectivity)
-        # for nd_item in nodes:
-        #     print("--")
-        #     print(nd_item.tag)
-        #     print(nd_item.entity_tag)
-        #     print(nd_item.entity_dim)
-        #     print(nd_item.x)
-        #     print(nd_item.y)
-        #     print(nd_item.z)
-        # for phys_ent in physical_entities_list:
-        #     print("--")
-        #     print(phys_ent.tag)
-        #     print(phys_ent.dim)
-        #     print(phys_ent.label)
-        # # print(ds.volumes_data[0].phys_tags)
-        # print("--")
-        # print(vertices)
-        return ds, nodes, element_entities, euclidean_dimension
+        return physical_entities, data_structure, node_entities, element_entities, euclidean_dimension
 
 
-read_msh_file("tetrahedra_1.msh")
+# pe, ds, nodes, element_entities, euclidean_dimension = read_msh_file("tetrahedra_1.msh")
 # read_msh_file("quadrangles_0.msh")
 # read_msh_file("triangles_0.msh")
 
+# def get_msh_face_label(number_of_vertices: int) -> int:
+#     """
+#
+#     Args:
+#         number_of_vertices: the number of vertices in the mesh
+#
+#     Returns:
+#
+#     """
+#     if number_of_vertices == 1:
+#         return 15
+#     elif number_of_vertices == 2:
+#         return 1
+#     elif number_of_vertices == 3:
+#         return 2
+#     elif number_of_vertices == 4:
+#         return 3
+#     elif number_of_vertices > 4:
+#         raise GeometryError("POLYGONS NOT SUPPORTED YET WITH GMSH")
+#     else:
+#         return "c2d{}".format(number_of_vertices)
+
+def build_mesh(msh_file_path: str):
+    physical_entities, data_structure, node_entities, element_entities, euclidean_dimension = read_msh_file(msh_file_path)
+    num_nodes = len(node_entities)
+    vertices = np.zeros((euclidean_dimension, num_nodes), dtype=real)
+    for i, node in enumerate(node_entities):
+        node_array = np.array([node.x, node.y, node.z])
+        vertices[:, i] = node_array[:euclidean_dimension]
+    cells_vertices_connectivity = []
+    cells_ordering = []
+    cells_shape_types = []
+    faces_vertices_connectivity = []
+    faces_shape_types = []
+    cells_faces_connectivity = []
+    tags = []
+    vertices_boundaries_connectivity = {}
+    # --- INITIATE DICTS
+    for physical_entity in physical_entities:
+        if physical_entity.dim == euclidean_dimension - 1:
+            vertices_boundaries_connectivity[physical_entity.label] = []
+    if euclidean_dimension == 1:
+        boundaries_entities = data_structure.points_data
+    elif euclidean_dimension == 2:
+        boundaries_entities = data_structure.curves_data
+    elif euclidean_dimension == 3:
+        boundaries_entities = data_structure.surfaces_data
+    else:
+        raise ValueError("NO")
+    number_of_cells_in_mesh = 0
+    for element_entity in element_entities:
+        if element_entity.entity_dim == euclidean_dimension:
+            number_of_cells_in_mesh += 1
+            cell_vertices_connectivity = [ii-1 for ii in element_entity.vertices_connectivity]
+            cells_vertices_connectivity.append(cell_vertices_connectivity)
+            cell_ordering = get_element_data(element_entity.element_type).connectivity
+            cells_ordering.append(cell_ordering)
+            cell_shape_type = get_element_data(element_entity.element_type).shape_type
+            cells_shape_types.append(cell_shape_type)
+            cell_faces_connectivity = []
+            for face_index, u in enumerate(cell_ordering):
+                c = [cell_vertices_connectivity[k] for k in u]
+                tag = "".join([str(item) for item in np.sort(c)])
+                if tag in tags:
+                    face_global_index = tags.index(tag)
+                    cell_faces_connectivity.append(face_global_index)
+                else:
+                    tags.append(tag)
+                    # face_label = get_face_label(len(c))
+                    face_shape_type = get_element_data(element_entity.element_type).faces_shape_types[face_index]
+                    # __check_faces_connection_item(c, face_label)
+                    faces_vertices_connectivity.append(c)
+                    faces_shape_types.append(face_shape_type)
+                    face_global_index = len(faces_vertices_connectivity) - 1
+                    cell_faces_connectivity.append(face_global_index)
+            cells_faces_connectivity.append(cell_faces_connectivity)
+        elif element_entity.entity_dim == euclidean_dimension - 1:
+            # print(element_entity.entity_tag)
+            physical_tags = boundaries_entities[element_entity.entity_tag-1].phys_tags
+            # print(physical_tags)
+            for phytag in physical_tags:
+                for physical_entity in physical_entities:
+                    if physical_entity.tag == phytag:
+                        for node_tag in element_entity.vertices_connectivity:
+                            node_tag_shifted = node_tag - 1
+                            # if not node_tag in vertices_boundaries_connectivity[physical_entity.label]:
+                            if not node_tag_shifted in vertices_boundaries_connectivity[physical_entity.label]:
+                                vertices_boundaries_connectivity[physical_entity.label].append(node_tag_shifted)
+    faces_boundaries_connectivity = {}
+    for key, val in vertices_boundaries_connectivity.items():
+        faces_boundaries_connectivity[key] = []
+        for face_index, face_vertices_connectivity in enumerate(faces_vertices_connectivity):
+            res = True
+            for vertex_index in face_vertices_connectivity:
+                if not vertex_index in val:
+                    res = False
+            if res:
+                faces_boundaries_connectivity[key] += [face_index]
+    number_of_vertices_in_mesh = num_nodes
+    # number_of_cells_in_mesh
+    number_of_faces_in_mesh = len(faces_vertices_connectivity)
+    vertices_weights_cell_wise = np.zeros((number_of_vertices_in_mesh,), dtype=size_type)
+    for cell_vertices_connectivity in cells_vertices_connectivity:
+        vertices_weights_cell_wise[cell_vertices_connectivity] += np.ones(
+            (len(cell_vertices_connectivity),), dtype=size_type
+        )
+    vertices_weights_face_wise = np.zeros((number_of_vertices_in_mesh,), dtype=size_type)
+    for face_vertices_connectivity in faces_vertices_connectivity:
+        vertices_weights_face_wise[face_vertices_connectivity] += np.ones(
+            (len(face_vertices_connectivity),), dtype=size_type
+        )
+    return (
+        vertices,
+        euclidean_dimension,
+        cells_vertices_connectivity,
+        cells_ordering,
+        cells_shape_types,
+        faces_vertices_connectivity,
+        faces_shape_types,
+        cells_faces_connectivity,
+        vertices_boundaries_connectivity,
+        faces_boundaries_connectivity,
+        number_of_vertices_in_mesh,
+        number_of_cells_in_mesh,
+        number_of_faces_in_mesh,
+        vertices_weights_cell_wise,
+        vertices_weights_face_wise
+    )
+    # print(physical_entities)
+    # print(data_structure)
+    # for key, item in vertices_boundaries_connectivity.items():
+    #     print(key)
+    #     print(item)
+    # for key, item in faces_boundaries_connectivity.items():
+    #     print(key)
+    #     print(item)
+    # print(faces_vertices_connectivity)
 
 
+    # physical_entities
+    # vertices_boundaries_connectivity =
+    # faces_boundaries_connectivity =
+
+# build_mesh("/home/dsiedel/projetcs/dev/test_msh/tetrahedra_1.msh")

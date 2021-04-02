@@ -1,24 +1,5 @@
-from enum import Enum, auto
+from h2o.h2o import *
 from dataclasses import dataclass
-from typing import Union, List, Tuple
-
-
-class DomainType(Enum):
-    POINT = auto()
-    CURVE = auto()
-    SURFACE = auto()
-    VOLUME = auto()
-
-
-class ShapeType(Enum):
-    SEGMENT = auto()
-    TRIANGLE = auto()
-    QUADRANGLE = auto()
-    TETRAHEDRON = auto()
-    HEXAHEDRON = auto()
-    PRISM = auto()
-    PYRAMID = auto()
-    POINT = auto()
 
 
 @dataclass(frozen=True)

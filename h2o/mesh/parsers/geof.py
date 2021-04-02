@@ -95,7 +95,7 @@ geof_face_library = {
 }
 
 
-def get_face_label(number_of_vertices: int):
+def get_face_label(number_of_vertices: int) -> str:
     """
 
     Args:

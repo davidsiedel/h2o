@@ -14,21 +14,24 @@ from h2o.h2o import *
 # from mgis import behaviour as mgis_bv
 
 
-def clean_res_dir():
+def clean_res_dir(res_folder_path: str):
     """
 
     """
-    res_folder = os.path.join(get_project_path(), "res")
-    print(res_folder)
-    for filename in os.listdir(res_folder):
-        file_path = os.path.join(res_folder, filename)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print("Failed to delete %s. Reason: %s" % (file_path, e))
+    # res_folder = os.path.join(get_project_path(), "res")
+    print(res_folder_path)
+    try:
+        for filename in os.listdir(res_folder_path):
+            file_path = os.path.join(res_folder_path, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                print("Failed to delete %s. Reason: %s" % (file_path, e))
+    except FileNotFoundError:
+        os.mkdir(res_folder_path)
 
 
 class Problem:
@@ -41,6 +44,7 @@ class Problem:
     number_of_iterations: int
     tolerance: float
     elements: List[Element]
+    res_folder_path: str
 
     def __init__(
         self,
@@ -53,7 +57,7 @@ class Problem:
         loads: List[Load] = None,
         quadrature_type: QuadratureType = QuadratureType.GAUSS,
         tolerance: float = 1.0e-6,
-        res_folder: str = None
+        res_folder_path: str = None
     ):
         """
 
@@ -68,6 +72,7 @@ class Problem:
             quadrature_type:
             tolerance:
         """
+        self.res_folder_path = res_folder_path
         self.finite_element = finite_element
         self.field = field
         self.mesh = Mesh(mesh_file_path=mesh_file_path, integration_order=finite_element.construction_integration_order)
@@ -104,16 +109,19 @@ class Problem:
         constrained_system_size = system_size + lagrange_system_size
         return constrained_system_size, system_size
 
-    def create_vertex_res_files(self, suffix: str):
+    def create_vertex_res_files(self, res_folder_path: str, suffix: str):
         """
 
         Args:
+            res_folder_path:
             suffix:
 
         Returns:
 
         """
-        with open(os.path.join(get_project_path(), "res/res_vtx_{}.csv".format(suffix)), "w") as res_vtx_file:
+        res_file_path = os.path.join(res_folder_path, "res_vtx_{}.csv".format(suffix))
+        with open(res_file_path, "w") as res_vtx_file:
+        # with open(os.path.join(get_project_path(), "res/res_vtx_{}.csv".format(suffix)), "w") as res_vtx_file:
             for x_dir in range(self.field.euclidean_dimension):
                 res_vtx_file.write("X_{},".format(x_dir))
             for u_dir in range(self.field.field_dimension):
@@ -121,14 +129,17 @@ class Problem:
             res_vtx_file.write("\n")
         return
 
-    def create_quadrature_points_res_files(self, suffix: str, material: Material):
+    def create_quadrature_points_res_files(self, res_folder_path: str, suffix: str, material: Material):
         """
 
         Args:
+            res_folder_path:
             suffix:
             material:
         """
-        with open(os.path.join(get_project_path(), "res/res_qdp_{}.csv".format(suffix)), "w") as res_qdp_file:
+        res_file_path = os.path.join(res_folder_path, "res_qdp_{}.csv".format(suffix))
+        with open(res_file_path, "w") as res_qdp_file:
+        # with open(os.path.join(get_project_path(), "res/res_qdp_{}.csv".format(suffix)), "w") as res_qdp_file:
             for x_dir in range(self.field.euclidean_dimension):
                 res_qdp_file.write("XQ_{},".format(x_dir))
             for u_dir in range(self.field.field_dimension):
@@ -155,17 +166,20 @@ class Problem:
             # for
             res_qdp_file.write("\n")
 
-    def write_vertex_res_files(self, suffix: str, faces_unknown_vector: ndarray):
+    def write_vertex_res_files(self, res_folder_path: str, suffix: str, faces_unknown_vector: ndarray):
         """
 
         Args:
+            res_folder_path:
             suffix:
             faces_unknown_vector:
 
         Returns:
 
         """
-        with open(os.path.join(get_project_path(), "res/res_vtx_{}.csv".format(suffix)), "a") as res_vtx_file:
+        res_file_path = os.path.join(res_folder_path, "res_vtx_{}.csv".format(suffix))
+        with open(res_file_path, "a") as res_vtx_file:
+        # with open(os.path.join(get_project_path(), "res/res_vtx_{}.csv".format(suffix)), "a") as res_vtx_file:
             for vertex_count in range(self.mesh.number_of_vertices_in_mesh):
                 vertex = self.mesh.vertices[:, vertex_count]
                 for x_dir in range(self.field.euclidean_dimension):
@@ -190,10 +204,11 @@ class Problem:
                 res_vtx_file.write("\n")
         return
 
-    def write_quadrature_points_res_files(self, suffix: str, material: Material, faces_unknown_vector: ndarray):
+    def write_quadrature_points_res_files(self, res_folder_path: str, suffix: str, material: Material, faces_unknown_vector: ndarray):
         """
 
         Args:
+            res_folder_path:
             suffix:
             material:
             faces_unknown_vector:
@@ -201,7 +216,9 @@ class Problem:
         Returns:
 
         """
-        with open(os.path.join(get_project_path(), "res/res_qdp_{}.csv".format(suffix)), "a") as res_qdp_file:
+        res_file_path = os.path.join(res_folder_path, "res_qdp_{}.csv".format(suffix))
+        with open(res_file_path, "a") as res_qdp_file:
+        # with open(os.path.join(get_project_path(), "res/res_qdp_{}.csv".format(suffix)), "a") as res_qdp_file:
             qp = 0
             for element in self.elements:
                 cell_quadrature_size = element.cell.get_quadrature_size(
@@ -434,6 +451,12 @@ class Problem:
                         else:
                             raise ValueError
                     else:
+                        print(self.mesh.faces_boundaries_connectivity)
+                        for keyy, itemm in self.mesh.faces_boundaries_connectivity.items():
+                            print(keyy)
+                            print(itemm)
+                        for bc in boundary_conditions:
+                            print(bc.boundary_name)
                         raise KeyError
                 else:
                     raise TypeError

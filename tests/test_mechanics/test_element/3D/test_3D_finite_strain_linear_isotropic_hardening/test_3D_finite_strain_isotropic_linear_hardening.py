@@ -50,8 +50,12 @@ class TestMecha(TestCase):
         ]
 
         # --- MESH
-        mesh_file_path = "meshes/hexahe_1.geof"
+        # mesh_file_path = "meshes/hexahe_1.geof"
         # mesh_file_path = "meshes/polyhe_1.geof"
+        # mesh_file_path = "meshes/tetrahedra_0.msh"
+        # mesh_file_path = "meshes/tetrahedra_3.msh"
+        mesh_file_path = "meshes/hexahedra_0.msh"
+        # mesh_file_path = "meshes/tetrahedra_1.msh"
 
         # --- FIELD
         displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN)
@@ -75,11 +79,13 @@ class TestMecha(TestCase):
             loads=loads,
             quadrature_type=QuadratureType.GAUSS,
             tolerance=1.0e-4,
+            res_folder_path=get_current_res_folder_path()
         )
 
         # --- MATERIAL
         parameters = {"YoungModulus": 70.0e9, "PoissonRatio": 0.34}
         stabilization_parameter = parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        # stabilization_parameter = 0.001 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         mat = Material(
             nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
             library_path="behaviour/src/libBehaviour.so",
@@ -92,14 +98,14 @@ class TestMecha(TestCase):
         )
 
         # --- SOLVE
-        # solve_newton_2(p, mat, verbose=False)
-        solve_newton_exact(p, mat, verbose=False)
+        solve_newton_2(p, mat, verbose=False)
+        # solve_newton_exact(p, mat, verbose=False)
 
         # --- POST PROCESSING
         from pp.plot_data import plot_data
 
         mtest_file_path = "mtest/finite_strain_isotropic_linear_hardening.res"
-        hho_res_dir_path = "../../../../../res"
+        hho_res_dir_path = "res"
         number_of_time_steps = len(time_steps)
         m_x_inedx = 1
         m_y_index = 10

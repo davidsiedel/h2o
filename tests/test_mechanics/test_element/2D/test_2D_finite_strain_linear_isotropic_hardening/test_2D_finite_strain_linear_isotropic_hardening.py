@@ -53,7 +53,10 @@ class TestMecha(TestCase):
             # "meshes/triang_r.geof"
             # "meshes/triang_2.geof"
             # "meshes/square_1.geof"
-            "meshes/pentag_1.geof"
+            # "meshes/pentag_1.geof"
+            # "meshes/triangles_0.msh"
+            "meshes/quadrangles_3.msh"
+            # "meshes/triang_3.geof"
         )
 
         # --- FIELD
@@ -61,7 +64,7 @@ class TestMecha(TestCase):
 
         # --- FINITE ELEMENT
         finite_element = FiniteElement(
-            element_type=ElementType.HDG_HIGH,
+            element_type=ElementType.HDG_EQUAL,
             polynomial_order=1,
             euclidean_dimension=displacement.euclidean_dimension,
             basis_type=BasisType.MONOMIAL,
@@ -78,6 +81,7 @@ class TestMecha(TestCase):
             loads=loads,
             quadrature_type=QuadratureType.GAUSS,
             tolerance=1.0e-4,
+            res_folder_path=get_current_res_folder_path()
         )
 
         # --- MATERIAL
@@ -103,7 +107,7 @@ class TestMecha(TestCase):
         from pp.plot_data import plot_data
 
         mtest_file_path = "mtest/finite_strain_isotropic_linear_hardening.res"
-        hho_res_dir_path = "../../../../../res"
+        hho_res_dir_path = "res"
         number_of_time_steps = len(time_steps)
         m_x_inedx = 1
         m_y_index = 6

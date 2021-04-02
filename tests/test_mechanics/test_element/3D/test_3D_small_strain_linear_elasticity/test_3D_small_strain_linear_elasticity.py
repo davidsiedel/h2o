@@ -43,7 +43,10 @@ class TestMecha(TestCase):
 
         # --- MESH
         # mesh_file_path = "meshes/hexahe_1.geof"
-        mesh_file_path = "meshes/polyhe_1.geof"
+        # mesh_file_path = "meshes/tetrahedra_1.msh"
+        # mesh_file_path = "meshes/tetrahedra_0.msh"
+        mesh_file_path = "meshes/hexahedra_0.msh"
+        # mesh_file_path = "meshes/polyhe_1.geof"
 
         # --- FIELD
         displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_SMALL_STRAIN)
@@ -67,6 +70,7 @@ class TestMecha(TestCase):
             loads=loads,
             quadrature_type=QuadratureType.GAUSS,
             tolerance=1.0e-4,
+            res_folder_path=get_current_res_folder_path()
         )
 
         # --- MATERIAL
@@ -84,14 +88,15 @@ class TestMecha(TestCase):
         )
 
         # --- SOLVE
-        # solve_newton_2(p, mat, verbose=False)
-        solve_newton_exact(p, mat, verbose=False)
+        solve_newton_2(p, mat, verbose=False)
+        # solve_newton_exact(p, mat, verbose=False)
 
         # --- POST PROCESSING
         from pp.plot_data import plot_data
 
+
         mtest_file_path = "mtest/small_strain_linear_elasticity.res"
-        hho_res_dir_path = "../../../../../res"
+        hho_res_dir_path = "res"
         number_of_time_steps = len(time_steps)
         m_x_inedx = 1
         m_y_index = 7

@@ -47,8 +47,8 @@ class Element:
         # --- BUILD OPERATORS
         if finite_element.element_type in [ElementType.HDG_LOW, ElementType.HDG_EQUAL, ElementType.HDG_HIGH]:
             self.gradients_operators = gradop.get_gradient_operators(field, finite_element, cell, faces)
-            # self.stabilization_operator = stabop.get_stabilization_operator(field, finite_element, cell, faces)
-            self.stabilization_operator = stabop.get_stab_test(field, finite_element, cell, faces)
+            self.stabilization_operator = stabop.get_stabilization_operator(field, finite_element, cell, faces)
+            # self.stabilization_operator = stabop.get_stab_test(field, finite_element, cell, faces)
         else:
             raise KeyError("NO")
         return

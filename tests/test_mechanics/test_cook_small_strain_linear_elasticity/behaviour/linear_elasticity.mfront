@@ -10,8 +10,8 @@
 @Parameter young =  70.e9;
 //@Parameter young = 1.124999981250001;
 young.setGlossaryName("YoungModulus");
-@Parameter nu    =   0.34;
-//@Parameter nu = 0.4999;
+//@Parameter nu    =   0.34;
+@Parameter nu = 0.4999;
 nu.setGlossaryName("PoissonRatio");
 
 // Lame Coefficients

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 
 def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, debug_mode: DebugMode = DebugMode.NONE):
-    clean_res_dir()
+    clean_res_dir(problem.res_folder_path)
     _dx = problem.field.field_dimension
     _fk = problem.finite_element.face_basis_k.dimension
     _cl = problem.finite_element.cell_basis_l.dimension
@@ -30,8 +30,8 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
         print("TIME_STEP : {} | LOAD_VALUE : {}".format(time_step_index, time_step))
         # --- WRITE RES FILES
         file_suffix = "{}".format(time_step_index).zfill(6)
-        problem.create_vertex_res_files(file_suffix)
-        problem.create_quadrature_points_res_files(file_suffix, material)
+        problem.create_vertex_res_files(problem.res_folder_path, file_suffix)
+        problem.create_quadrature_points_res_files(problem.res_folder_path, file_suffix, material)
         for iteration in range(problem.number_of_iterations):
             # --------------------------------------------------------------------------------------------------
             # SET SYSTEM MATRIX AND VECTOR
@@ -238,6 +238,7 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
                                     print("{}".format(np.linalg.cond(_m_psi_psi_face)))
                                 imposed_face_displacement = _m_psi_psi_face_inv @ _v_face_imposed_displacement
                                 face_displacement_difference = face_displacement - imposed_face_displacement
+                                # print(face_lagrange)
                                 # --- LAGRANGE INTERNAL FORCES PART
                                 element_internal_forces[_c0:_c1] += normalization_lagrange_coefficient * face_lagrange
                                 # --- LAGRANGE MULTIPLIERS PART
@@ -372,8 +373,8 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
                 # ----------------------------------------------------------------------------------------------
                 mgis_bv.update(material.mat_data)
                 print("ITERATIONS : {}".format(iteration + 1))
-                problem.write_vertex_res_files(file_suffix, faces_unknown_vector)
-                problem.write_quadrature_points_res_files(file_suffix, material, faces_unknown_vector)
+                problem.write_vertex_res_files(problem.res_folder_path, file_suffix, faces_unknown_vector)
+                problem.write_quadrature_points_res_files(problem.res_folder_path, file_suffix, material, faces_unknown_vector)
                 faces_unknown_vector_previous_step += faces_unknown_vector
                 residual_values.append(residual_evaluation)
                 break

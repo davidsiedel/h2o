@@ -16,7 +16,7 @@ def solve_newton_exact(problem: Problem, material: Material, verbose: bool = Fal
     Returns:
 
     """
-    clean_res_dir()
+    clean_res_dir(problem.res_folder_path)
     _dx = problem.field.field_dimension
     _fk = problem.finite_element.face_basis_k.dimension
     _cl = problem.finite_element.cell_basis_l.dimension
@@ -38,8 +38,8 @@ def solve_newton_exact(problem: Problem, material: Material, verbose: bool = Fal
         print("TIME_STEP : {} | LOAD_VALUE : {}".format(time_step_index, time_step))
         # --- WRITE RES FILES
         file_suffix = "{}".format(time_step_index).zfill(6)
-        problem.create_vertex_res_files(file_suffix)
-        problem.create_quadrature_points_res_files(file_suffix, material)
+        problem.create_vertex_res_files(problem.res_folder_path, file_suffix)
+        problem.create_quadrature_points_res_files(problem.res_folder_path, file_suffix, material)
         # correction = np.zeros((_constrained_system_size),dtype=real)
         # --- RESET DISPLACEMENT
         reset_displacement = False
@@ -438,8 +438,8 @@ def solve_newton_exact(problem: Problem, material: Material, verbose: bool = Fal
                 # ----------------------------------------------------------------------------------------------
                 mgis_bv.update(material.mat_data)
                 print("ITERATIONS : {}".format(iteration + 1))
-                problem.write_vertex_res_files(file_suffix, faces_unknown_vector)
-                problem.write_quadrature_points_res_files(file_suffix, material, faces_unknown_vector)
+                problem.write_vertex_res_files(problem.res_folder_path, file_suffix, faces_unknown_vector)
+                problem.write_quadrature_points_res_files(problem.res_folder_path, file_suffix, material, faces_unknown_vector)
                 faces_unknown_vector_previous_step += faces_unknown_vector
                 residual_values.append(residual_evaluation)
                 break

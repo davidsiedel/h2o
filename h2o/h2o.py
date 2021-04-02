@@ -17,9 +17,21 @@ class BoundaryType(Enum):
     PRESSURE = auto()
     SLIDE = auto()
 
+class DomainType(Enum):
+    POINT = auto()
+    CURVE = auto()
+    SURFACE = auto()
+    VOLUME = auto()
 
 class ShapeType(Enum):
-    POINT = auto()
+    # POINT = auto()
+    # SEGMENT = auto()
+    # TRIANGLE = auto()
+    # QUADRANGLE = auto()
+    # POLYGON = auto()
+    # TETRAHEDRON = auto()
+    # HEXAHEDRON = auto()
+    # POLYHEDRON = auto()
     SEGMENT = auto()
     TRIANGLE = auto()
     QUADRANGLE = auto()
@@ -27,6 +39,9 @@ class ShapeType(Enum):
     TETRAHEDRON = auto()
     HEXAHEDRON = auto()
     POLYHEDRON = auto()
+    PRISM = auto()
+    PYRAMID = auto()
+    POINT = auto()
 
 
 class QuadratureType(Enum):
@@ -89,6 +104,11 @@ def get_project_path():
 def get_res_file_path(res_file_name: str, suffix: str):
     project_path = get_project_path()
     return os.path.join(project_path, "res/{}_{}.txt".format(res_file_name, suffix))
+
+
+def get_current_res_folder_path() -> str:
+    res_path = os.path.join(os.getcwd(), "res")
+    return res_path
 
 
 # real = np.float64

@@ -16,7 +16,7 @@ from h2o.problem.resolution.exact import solve_newton_exact
 class TestMecha(TestCase):
     def test_notched_specimen_finite_strain_linear_isotropic_hardening(self):
         # --- VALUES
-        time_steps = np.linspace(0.0, 6.0e-3, 50)
+        time_steps = np.linspace(0.0, 6.0e-3, 30)
         iterations = 100
 
         # --- LOAD
@@ -33,13 +33,18 @@ class TestMecha(TestCase):
             return 0.0
 
         boundary_conditions = [
-            BoundaryCondition("LRU", pull, BoundaryType.DISPLACEMENT, 1),
-            BoundaryCondition("LRD", fixed, BoundaryType.DISPLACEMENT, 1),
-            BoundaryCondition("AXESYM", fixed, BoundaryType.DISPLACEMENT, 0),
+            # BoundaryCondition("LRU", pull, BoundaryType.DISPLACEMENT, 1),
+            # BoundaryCondition("LRD", fixed, BoundaryType.DISPLACEMENT, 1),
+            # BoundaryCondition("AXESYM", fixed, BoundaryType.DISPLACEMENT, 0),
+            BoundaryCondition("TOP", pull, BoundaryType.DISPLACEMENT, 1),
+            BoundaryCondition("BOTTOM", fixed, BoundaryType.DISPLACEMENT, 1),
+            BoundaryCondition("LEFT", fixed, BoundaryType.DISPLACEMENT, 0),
         ]
 
         # --- MESH
-        mesh_file_path = "meshes/ssna.geof"
+        # mesh_file_path = "meshes/ssna.geof"
+        # mesh_file_path = "meshes/ssna.msh"
+        mesh_file_path = "meshes/ssna_quad.msh"
 
         # --- FIELD
         displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN)
@@ -47,13 +52,12 @@ class TestMecha(TestCase):
         # --- FINITE ELEMENT
         finite_element = FiniteElement(
             element_type=ElementType.HDG_EQUAL,
-            polynomial_order=1,
+            polynomial_order=2,
             euclidean_dimension=displacement.euclidean_dimension,
             basis_type=BasisType.MONOMIAL,
         )
 
         # --- PROBLEM
-        res_folder = "res"
         p = Problem(
             mesh_file_path=mesh_file_path,
             field=displacement,
@@ -64,11 +68,13 @@ class TestMecha(TestCase):
             loads=loads,
             quadrature_type=QuadratureType.GAUSS,
             tolerance=1.0e-4,
+            res_folder_path=get_current_res_folder_path()
         )
 
         # --- MATERIAL
         parameters = {"YoungModulus": 70.0e9, "PoissonRatio": 0.34, "HardeningSlope": 10.0e9, "YieldStress": 300.0e6}
-        stabilization_parameter = parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        stabilization_parameter = 0.001 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        # stabilization_parameter = parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         mat = Material(
             nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
             library_path="behaviour/src/libBehaviour.so",
@@ -86,7 +92,7 @@ class TestMecha(TestCase):
 
         from pp.plot_ssna import plot_det_f
 
-        plot_det_f(48, "/home/dsiedel/Projects/h2o/res")
+        plot_det_f(48, "res")
 
         # --- POST PROCESSING
         # from pp.plot_data import plot_data

@@ -66,6 +66,7 @@ class TestProblem(TestCase):
             loads=loads,
             quadrature_type=QuadratureType.GAUSS,
             tolerance=1.0e-4,
+            res_folder_path=get_current_res_folder_path()
         )
 
         # --- MATERIAL
