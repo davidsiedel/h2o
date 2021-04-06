@@ -14,9 +14,20 @@ from h2o.problem.resolution.exact import solve_newton_exact
 
 
 class TestMecha(TestCase):
-    def test_notched_specimen_finite_strain_linear_isotropic_hardening(self):
+    def test_square_finite_strain_isotropic_voce_hardening(self):
         # --- VALUES
-        time_steps = np.linspace(0.0, 6.0e-3, 150)
+        spacing = 3
+        time_steps_1 = np.linspace(0.0, 7.0e-3, spacing)
+        time_steps_2 = np.linspace(7.0e-3, -1.0e-2, spacing)
+        time_steps_3 = np.linspace(-1.0e-2, 2.0e-2, spacing)
+        time_steps_4 = np.linspace(2.0e-2, -3.0e-2, spacing)
+        time_steps_5 = np.linspace(-3.0e-2, 4.0e-2, spacing)
+        time_steps = []
+        for ts in [time_steps_1, time_steps_2[1:], time_steps_3[1:], time_steps_4[1:], time_steps_5[1:]]:
+            # time_steps += list(np.sqrt(2.)*ts)
+            time_steps += list(ts)
+        time_steps = np.array(time_steps)
+        time_steps = np.linspace(0.0, 4.0e-2, 11, endpoint=True)
         iterations = 100
 
         # --- LOAD
@@ -33,19 +44,23 @@ class TestMecha(TestCase):
             return 0.0
 
         boundary_conditions = [
-            BoundaryCondition("LRU", pull, BoundaryType.DISPLACEMENT, 1),
-            BoundaryCondition("LRD", fixed, BoundaryType.DISPLACEMENT, 1),
-            BoundaryCondition("AXESYM", fixed, BoundaryType.DISPLACEMENT, 0),
-            # BoundaryCondition("TOP", pull, BoundaryType.DISPLACEMENT, 1),
-            # BoundaryCondition("BOTTOM", fixed, BoundaryType.DISPLACEMENT, 1),
-            # BoundaryCondition("LEFT", fixed, BoundaryType.DISPLACEMENT, 0),
+            BoundaryCondition("RIGHT", pull, BoundaryType.DISPLACEMENT, 0),
+            BoundaryCondition("LEFT", fixed, BoundaryType.DISPLACEMENT, 0),
+            BoundaryCondition("BOTTOM", fixed, BoundaryType.DISPLACEMENT, 1),
         ]
 
         # --- MESH
-        mesh_file_path = "meshes/ssna.geof"
-        # mesh_file_path = "meshes/ssna.msh"
-        # mesh_file_path = "meshes/ssna_quad.msh"
-        # mesh_file_path = "meshes/ssna303_triangles_1.msh"
+        mesh_file_path = (
+            # "meshes/triang_r.geof"
+            # "meshes/triang_2.geof"
+            # "meshes/square_1.geof"
+            # "meshes/pentag_1.geof"
+            # "meshes/triangles_0.msh"
+            "meshes/quadrangles_2.msh"
+            # "meshes/quadrangles_0.msh"
+            # "meshes/triangles_3.msh"
+            # "meshes/triang_3.geof"
+        )
 
         # --- FIELD
         displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN)
@@ -74,50 +89,46 @@ class TestMecha(TestCase):
 
         # --- MATERIAL
         parameters = {"YoungModulus": 70.0e9, "PoissonRatio": 0.34, "HardeningSlope": 10.0e9, "YieldStress": 300.0e6}
-        # stabilization_parameter = 0.001 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         stabilization_parameter = parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         mat = Material(
             nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
             library_path="behaviour/src/libBehaviour.so",
             library_name="Voce",
-            # library_name="FiniteStrainIsotropicLinearHardeningPlasticity",
             hypothesis=mgis_bv.Hypothesis.PLANESTRAIN,
             stabilization_parameter=stabilization_parameter,
             lagrange_parameter=parameters["YoungModulus"],
             field=displacement,
             parameters=None,
+            # finite_strains=False
         )
 
         # --- SOLVE
-        solve_newton_2(p, mat, verbose=False, debug_mode=DebugMode.NONE)
-        # solve_newton_exact(p, mat, verbose=False, debug_mode=DebugMode.NONE)
-
-        from pp.plot_ssna import plot_det_f
-
-        plot_det_f(25, "res")
+        solve_newton_2(p, mat, verbose=False)
+        # solve_newton_exact(p, mat, verbose=False)
 
         # --- POST PROCESSING
-        # from pp.plot_data import plot_data
-        # mtest_file_path = "mtest/finite_strain_isotropic_linear_hardening.res"
-        # hho_res_dir_path = "../../../res"
-        # number_of_time_steps = len(time_steps)
-        # m_x_inedx = 1
-        # m_y_index = 6
-        # d_x_inedx = 4
-        # d_y_inedx = 9
-        # plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)
-        # m_x_inedx = 1
-        # m_y_index = 7
-        # d_x_inedx = 4
-        # d_y_inedx = 10
-        # plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)
-        # m_x_inedx = 1
-        # m_y_index = 8
-        # d_x_inedx = 4
-        # d_y_inedx = 11
-        # plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)
-        # m_x_inedx = 1
-        # m_y_index = 9
-        # d_x_inedx = 4
-        # d_y_inedx = 12
-        # plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)
+        from pp.plot_data import plot_data
+
+        mtest_file_path = "mtest/finite_strain_isotropic_voce_hardening.res"
+        hho_res_dir_path = "res"
+        number_of_time_steps = len(time_steps)
+        m_x_inedx = 1
+        m_y_index = 6
+        d_x_inedx = 4
+        d_y_inedx = 9
+        plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)
+        m_x_inedx = 1
+        m_y_index = 7
+        d_x_inedx = 4
+        d_y_inedx = 10
+        plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)
+        m_x_inedx = 1
+        m_y_index = 8
+        d_x_inedx = 4
+        d_y_inedx = 11
+        plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)
+        m_x_inedx = 1
+        m_y_index = 9
+        d_x_inedx = 4
+        d_y_inedx = 12
+        plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)

@@ -14,7 +14,7 @@ from h2o.problem.resolution.exact import solve_newton_exact
 
 
 class TestMecha(TestCase):
-    def test_notched_specimen_finite_strain_linear_isotropic_hardening(self):
+    def test_sphere_finite_strain(self):
         # --- VALUES
         time_steps = np.linspace(0.0, 6.0e-3, 150)
         iterations = 100
@@ -33,16 +33,14 @@ class TestMecha(TestCase):
             return 0.0
 
         boundary_conditions = [
-            BoundaryCondition("LRU", pull, BoundaryType.DISPLACEMENT, 1),
-            BoundaryCondition("LRD", fixed, BoundaryType.DISPLACEMENT, 1),
-            BoundaryCondition("AXESYM", fixed, BoundaryType.DISPLACEMENT, 0),
-            # BoundaryCondition("TOP", pull, BoundaryType.DISPLACEMENT, 1),
-            # BoundaryCondition("BOTTOM", fixed, BoundaryType.DISPLACEMENT, 1),
-            # BoundaryCondition("LEFT", fixed, BoundaryType.DISPLACEMENT, 0),
+            BoundaryCondition("BOTTOM", pull, BoundaryType.DISPLACEMENT, 1),
+            BoundaryCondition("RIGHT", fixed, BoundaryType.DISPLACEMENT, 1),
+            BoundaryCondition("LEFT", fixed, BoundaryType.DISPLACEMENT, 0),
+            BoundaryCondition("INTERIOR", fixed, BoundaryType.PRESSURE, 0),
         ]
 
         # --- MESH
-        mesh_file_path = "meshes/ssna.geof"
+        mesh_file_path = "meshes/sphere_triangles_0.msh"
         # mesh_file_path = "meshes/ssna.msh"
         # mesh_file_path = "meshes/ssna_quad.msh"
         # mesh_file_path = "meshes/ssna303_triangles_1.msh"
@@ -94,7 +92,7 @@ class TestMecha(TestCase):
 
         from pp.plot_ssna import plot_det_f
 
-        plot_det_f(25, "res")
+        # plot_det_f(25, "res")
 
         # --- POST PROCESSING
         # from pp.plot_data import plot_data

@@ -45,8 +45,8 @@ def plot_det_f(time_step_index: int, res_folder: str):
                 perso = LinearSegmentedColormap.from_list("perso", colors, N=1000)
                 vmin = min(field_vals[:])
                 vmax = max(field_vals[:])
-                vmin = 9.84e-1
-                vmax = 1.08
+                # vmin = 9.84e-1
+                # vmax = 1.08
                 levels = np.linspace(vmin, vmax, 1000, endpoint=True)
                 ticks = np.linspace(vmin, vmax, 10, endpoint=True)
                 datad = ax0d.tricontourf(x, y, field_vals[:], cmap=perso, levels=levels)

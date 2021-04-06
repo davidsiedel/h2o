@@ -320,16 +320,18 @@ def build_mesh(msh_file_path: str):
             cells_faces_connectivity.append(cell_faces_connectivity)
         elif element_entity.entity_dim == euclidean_dimension - 1:
             # print(element_entity.entity_tag)
+            print(element_entity.entity_tag-1)
             physical_tags = boundaries_entities[element_entity.entity_tag-1].phys_tags
             # print(physical_tags)
-            for phytag in physical_tags:
-                for physical_entity in physical_entities:
-                    if physical_entity.tag == phytag:
-                        for node_tag in element_entity.vertices_connectivity:
-                            node_tag_shifted = node_tag - 1
-                            # if not node_tag in vertices_boundaries_connectivity[physical_entity.label]:
-                            if not node_tag_shifted in vertices_boundaries_connectivity[physical_entity.label]:
-                                vertices_boundaries_connectivity[physical_entity.label].append(node_tag_shifted)
+            if not physical_tags is None:
+                for phytag in physical_tags:
+                    for physical_entity in physical_entities:
+                        if physical_entity.tag == phytag:
+                            for node_tag in element_entity.vertices_connectivity:
+                                node_tag_shifted = node_tag - 1
+                                # if not node_tag in vertices_boundaries_connectivity[physical_entity.label]:
+                                if not node_tag_shifted in vertices_boundaries_connectivity[physical_entity.label]:
+                                    vertices_boundaries_connectivity[physical_entity.label].append(node_tag_shifted)
     faces_boundaries_connectivity = {}
     for key, val in vertices_boundaries_connectivity.items():
         faces_boundaries_connectivity[key] = []
