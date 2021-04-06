@@ -23,6 +23,9 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
     faces_unknown_vector_previous_step = np.zeros((_constrained_system_size), dtype=real)
     residual_values = []
     for time_step_index, time_step in enumerate(problem.time_steps):
+        local_time_steps = [time_step]
+        for local_time_step_index, local_time_step in enumerate(local_time_steps):
+            print("0K")
         # --- SET TEMPERATURE
         material.set_temperature()
         # --- PRINT DATA

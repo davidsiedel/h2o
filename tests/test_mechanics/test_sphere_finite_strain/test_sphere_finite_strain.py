@@ -23,7 +23,7 @@ class TestMecha(TestCase):
         def volumetric_load(time: float, position: ndarray):
             return 0
 
-        loads = [Load(volumetric_load, 0), Load(volumetric_load, 1)]
+        loads = [Load(volumetric_load, 0), Load(volumetric_load, 1), Load(volumetric_load, 2)]
 
         # --- BC
         def pull(time: float, position: ndarray) -> float:
@@ -34,7 +34,7 @@ class TestMecha(TestCase):
 
         boundary_conditions = [
             BoundaryCondition("BOTTOM", pull, BoundaryType.DISPLACEMENT, 1),
-            BoundaryCondition("RIGHT", fixed, BoundaryType.DISPLACEMENT, 1),
+            BoundaryCondition("RIGHT", fixed, BoundaryType.DISPLACEMENT, 2),
             BoundaryCondition("LEFT", fixed, BoundaryType.DISPLACEMENT, 0),
             BoundaryCondition("INTERIOR", fixed, BoundaryType.PRESSURE, 0),
         ]
@@ -46,7 +46,7 @@ class TestMecha(TestCase):
         # mesh_file_path = "meshes/ssna303_triangles_1.msh"
 
         # --- FIELD
-        displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN)
+        displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN)
 
         # --- FINITE ELEMENT
         finite_element = FiniteElement(
@@ -79,7 +79,7 @@ class TestMecha(TestCase):
             library_path="behaviour/src/libBehaviour.so",
             library_name="Voce",
             # library_name="FiniteStrainIsotropicLinearHardeningPlasticity",
-            hypothesis=mgis_bv.Hypothesis.PLANESTRAIN,
+            hypothesis=mgis_bv.Hypothesis.TRIDIMENSIONAL,
             stabilization_parameter=stabilization_parameter,
             lagrange_parameter=parameters["YoungModulus"],
             field=displacement,

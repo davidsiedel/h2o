@@ -55,7 +55,8 @@ class TestMecha(TestCase):
             # "meshes/square_1.geof"
             # "meshes/pentag_1.geof"
             # "meshes/triangles_0.msh"
-            "meshes/quadrangles_3.msh"
+            # "meshes/quadrangles_3.msh"
+            "meshes/quadrangles_2.msh"
             # "meshes/triang_3.geof"
         )
 

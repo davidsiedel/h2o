@@ -48,7 +48,7 @@ class TestMecha(TestCase):
         # mesh_file_path = "meshes/ssna303_triangles_1.msh"
 
         # --- FIELD
-        displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN)
+        displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_SMALL_STRAIN_PLANE_STRAIN)
 
         # --- FINITE ELEMENT
         finite_element = FiniteElement(

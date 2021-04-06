@@ -45,8 +45,8 @@ class TestMecha(TestCase):
 
         # --- MESH
         # mesh_file_path = "meshes/cook_quadrangles_1.msh"
-        mesh_file_path = "meshes/cook_quadrangles_0.msh"
-        # mesh_file_path = "meshes/cook_triangles_0.msh"
+        # mesh_file_path = "meshes/cook_quadrangles_0.msh"
+        mesh_file_path = "meshes/cook_triangles_0.msh"
 
         # --- FIELD
         displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN)
@@ -75,8 +75,9 @@ class TestMecha(TestCase):
 
         # --- MATERIAL
         parameters = {"YoungModulus": 70.0e9, "PoissonRatio": 0.34, "HardeningSlope": 10.0e9, "YieldStress": 300.0e6}
-        stabilization_parameter = 0.0001 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
-        # stabilization_parameter = parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        # stabilization_parameter = 1000. * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        stabilization_parameter = 0.001 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        stabilization_parameter = 1.0 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         mat = Material(
             nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
             library_path="behaviour/src/libBehaviour.so",

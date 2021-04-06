@@ -320,8 +320,15 @@ def build_mesh(msh_file_path: str):
             cells_faces_connectivity.append(cell_faces_connectivity)
         elif element_entity.entity_dim == euclidean_dimension - 1:
             # print(element_entity.entity_tag)
-            print(element_entity.entity_tag-1)
-            physical_tags = boundaries_entities[element_entity.entity_tag-1].phys_tags
+            # print(element_entity.entity_tag)
+            # print(boundaries_entities)
+            def get_bc_index(entity_tag: int) -> int:
+                for index, bc in enumerate(boundaries_entities):
+                    if bc.tag == entity_tag:
+                        return index
+                raise ValueError
+            bc_index = get_bc_index(element_entity.entity_tag)
+            physical_tags = boundaries_entities[bc_index].phys_tags
             # print(physical_tags)
             if not physical_tags is None:
                 for phytag in physical_tags:

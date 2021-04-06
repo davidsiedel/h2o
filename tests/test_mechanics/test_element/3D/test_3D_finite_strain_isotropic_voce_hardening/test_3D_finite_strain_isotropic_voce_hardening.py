@@ -27,7 +27,7 @@ class TestMecha(TestCase):
             # time_steps += list(np.sqrt(2.)*ts)
             time_steps += list(ts)
         time_steps = np.array(time_steps)
-        time_steps = np.linspace(0.0, 4.0e-2, 41, endpoint=True)
+        time_steps = np.linspace(0.0, 4.0e-2, 11, endpoint=True)
         iterations = 100
 
         # --- LOAD
@@ -52,7 +52,7 @@ class TestMecha(TestCase):
 
         # --- MESH
         mesh_file_path = "meshes/hexahedra_0.msh"
-        mesh_file_path = "meshes/tetrahedra_3.msh"
+        # mesh_file_path = "meshes/tetrahedra_3.msh"
 
         # --- FIELD
         displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN)

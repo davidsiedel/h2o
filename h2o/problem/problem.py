@@ -371,6 +371,8 @@ class Problem:
                 # face = Face(face_shape_type, face_vertices, integration_order, quadrature_type=quadrature_type)
                 face = Shape(face_shape_type, face_vertices)
                 element_faces.append(face)
+            print(cell_index)
+            print(cell_vertices)
             element = Element(
                 self.field,
                 self.finite_element,
