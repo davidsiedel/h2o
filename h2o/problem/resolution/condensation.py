@@ -22,6 +22,8 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
     faces_unknown_vector = np.zeros((_constrained_system_size), dtype=real)
     faces_unknown_vector_previous_step = np.zeros((_constrained_system_size), dtype=real)
     residual_values = []
+    time_step_temp = problem.time_steps[0]
+    initial_time_steps = [ff for ff in problem.time_steps]
     for time_step_index, time_step in enumerate(problem.time_steps):
         local_time_steps = [time_step]
         for local_time_step_index, local_time_step in enumerate(local_time_steps):
@@ -32,9 +34,10 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
         print("----------------------------------------------------------------------------------------------------")
         print("TIME_STEP : {} | LOAD_VALUE : {}".format(time_step_index, time_step))
         # --- WRITE RES FILES
-        file_suffix = "{}".format(time_step_index).zfill(6)
-        problem.create_vertex_res_files(problem.res_folder_path, file_suffix)
-        problem.create_quadrature_points_res_files(problem.res_folder_path, file_suffix, material)
+        # if time_step in initial_time_steps:
+        # file_suffix = "{}".format(time_step_index).zfill(6)
+        # problem.create_vertex_res_files(problem.res_folder_path, file_suffix)
+        # problem.create_quadrature_points_res_files(problem.res_folder_path, file_suffix, material)
         for iteration in range(problem.number_of_iterations):
             # --------------------------------------------------------------------------------------------------
             # SET SYSTEM MATRIX AND VECTOR
@@ -370,16 +373,29 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
             # print("ITER : {} | =====================================================================".format(str(iteration).zfill(4)))
             # residual_values.append(residual_evaluation)
             # if residual_evaluation < problem.tolerance:
-            if residual_evaluation < problem.tolerance or iteration == problem.number_of_iterations - 1:
+            if residual_evaluation < problem.tolerance:
                 # ----------------------------------------------------------------------------------------------
                 # UPDATE INTERNAL VARIABLES
                 # ----------------------------------------------------------------------------------------------
                 mgis_bv.update(material.mat_data)
                 print("ITERATIONS : {}".format(iteration + 1))
+                file_suffix = "{}".format(time_step_index).zfill(6)
+                problem.create_vertex_res_files(problem.res_folder_path, file_suffix)
+                problem.create_quadrature_points_res_files(problem.res_folder_path, file_suffix, material)
                 problem.write_vertex_res_files(problem.res_folder_path, file_suffix, faces_unknown_vector)
                 problem.write_quadrature_points_res_files(problem.res_folder_path, file_suffix, material, faces_unknown_vector)
-                faces_unknown_vector_previous_step += faces_unknown_vector
+                faces_unknown_vector_previous_step = np.copy(faces_unknown_vector)
+                for element in problem.elements:
+                    element.cell_unknown_vector_backup = np.copy(element.cell_unknown_vector)
                 residual_values.append(residual_evaluation)
+                time_step_temp = time_step + 0.
+                break
+            elif iteration == problem.number_of_iterations - 1:
+                problem.time_steps.insert(time_step_index+1, (time_step + time_step_temp)/2.)
+                faces_unknown_vector = np.copy(faces_unknown_vector_previous_step)
+                for element in problem.elements:
+                    # element.cell_unknown_vector = np.zeros((_cl * _dx,))
+                    element.cell_unknown_vector = np.copy(element.cell_unknown_vector_backup)
                 break
             else:
                 # ----------------------------------------------------------------------------------------------

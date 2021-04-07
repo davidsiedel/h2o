@@ -40,7 +40,7 @@ class Problem:
     mesh: Mesh
     boundary_conditions: List[BoundaryCondition]
     loads: List[Load]
-    time_steps: ndarray
+    time_steps: List[float]
     number_of_iterations: int
     tolerance: float
     elements: List[Element]
@@ -50,7 +50,7 @@ class Problem:
         self,
         mesh_file_path: str,
         field: Field,
-        time_steps: ndarray,
+        time_steps: List[float],
         iterations: int,
         finite_element: FiniteElement,
         boundary_conditions: List[BoundaryCondition],
@@ -80,7 +80,7 @@ class Problem:
         self.__check_boundary_conditions(boundary_conditions)
         self.boundary_conditions = boundary_conditions
         self.loads = loads
-        self.time_steps = time_steps
+        self.time_steps = list(time_steps)
         self.number_of_iterations = iterations
         self.tolerance = tolerance
         self.quadrature_type = quadrature_type

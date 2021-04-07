@@ -44,6 +44,7 @@ class Element:
         self.m_cell_faces = np.zeros((_cl * _dx, _nf * _fk * _dx), dtype=real)
         self.v_cell = np.zeros((_cl * _dx,), dtype=real)
         self.cell_unknown_vector = np.zeros((_dx * _cl,), dtype=real)
+        self.cell_unknown_vector_backup = np.zeros((_dx * _cl,), dtype=real)
         # --- BUILD OPERATORS
         if finite_element.element_type in [ElementType.HDG_LOW, ElementType.HDG_EQUAL, ElementType.HDG_HIGH]:
             self.gradients_operators = gradop.get_gradient_operators(field, finite_element, cell, faces)
