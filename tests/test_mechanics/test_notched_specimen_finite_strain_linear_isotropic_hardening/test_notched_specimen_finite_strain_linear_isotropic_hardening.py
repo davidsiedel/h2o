@@ -17,7 +17,8 @@ class TestMecha(TestCase):
     def test_notched_specimen_finite_strain_linear_isotropic_hardening(self):
         # --- VALUES
         time_steps = np.linspace(0.0, 6.0e-3, 150)
-        iterations = 100
+        time_steps = np.linspace(0.0, 6.0e-3, 50)
+        iterations = 10
 
         # --- LOAD
         def volumetric_load(time: float, position: ndarray):
@@ -33,19 +34,19 @@ class TestMecha(TestCase):
             return 0.0
 
         boundary_conditions = [
-            BoundaryCondition("LRU", pull, BoundaryType.DISPLACEMENT, 1),
-            BoundaryCondition("LRD", fixed, BoundaryType.DISPLACEMENT, 1),
-            BoundaryCondition("AXESYM", fixed, BoundaryType.DISPLACEMENT, 0),
-            # BoundaryCondition("TOP", pull, BoundaryType.DISPLACEMENT, 1),
-            # BoundaryCondition("BOTTOM", fixed, BoundaryType.DISPLACEMENT, 1),
-            # BoundaryCondition("LEFT", fixed, BoundaryType.DISPLACEMENT, 0),
+            # BoundaryCondition("LRU", pull, BoundaryType.DISPLACEMENT, 1),
+            # BoundaryCondition("LRD", fixed, BoundaryType.DISPLACEMENT, 1),
+            # BoundaryCondition("AXESYM", fixed, BoundaryType.DISPLACEMENT, 0),
+            BoundaryCondition("TOP", pull, BoundaryType.DISPLACEMENT, 1),
+            BoundaryCondition("BOTTOM", fixed, BoundaryType.DISPLACEMENT, 1),
+            BoundaryCondition("LEFT", fixed, BoundaryType.DISPLACEMENT, 0),
         ]
 
         # --- MESH
-        mesh_file_path = "meshes/ssna.geof"
+        # mesh_file_path = "meshes/ssna.geof"
         # mesh_file_path = "meshes/ssna.msh"
         # mesh_file_path = "meshes/ssna_quad.msh"
-        # mesh_file_path = "meshes/ssna303_triangles_1.msh"
+        mesh_file_path = "meshes/ssna303_triangles_1.msh"
 
         # --- FIELD
         displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN)

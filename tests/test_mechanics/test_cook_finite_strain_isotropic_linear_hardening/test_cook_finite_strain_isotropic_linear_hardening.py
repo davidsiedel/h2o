@@ -21,8 +21,10 @@ class TestMecha(TestCase):
         P_max = 70.e9 / 16.
         # P_min = 0.01
         # P_max = 1. / 16.
-        time_steps = np.linspace(P_min, P_max, 20)[:-3]
-        iterations = 100
+        time_steps = np.linspace(P_min, P_max, 40)[:-3]
+        # time_steps = np.linspace(P_min, P_max, 100)[:-3]
+        # time_steps = list(np.linspace(1., 883838383, 21, endpoint=False)) + list(np.linspace(883838383, P_max, 150, endpoint=True))
+        iterations = 10
 
         # --- LOAD
         def volumetric_load(time: float, position: ndarray):
@@ -45,8 +47,8 @@ class TestMecha(TestCase):
 
         # --- MESH
         # mesh_file_path = "meshes/cook_quadrangles_1.msh"
-        mesh_file_path = "meshes/cook_quadrangles_0.msh"
-        # mesh_file_path = "meshes/cook_triangles_0.msh"
+        # mesh_file_path = "meshes/cook_quadrangles_0.msh"
+        mesh_file_path = "meshes/cook_triangles_0.msh"
 
         # --- FIELD
         displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN)
@@ -54,7 +56,7 @@ class TestMecha(TestCase):
         # --- FINITE ELEMENT
         finite_element = FiniteElement(
             element_type=ElementType.HDG_EQUAL,
-            polynomial_order=1,
+            polynomial_order=2,
             euclidean_dimension=displacement.euclidean_dimension,
             basis_type=BasisType.MONOMIAL,
         )
@@ -75,12 +77,14 @@ class TestMecha(TestCase):
 
         # --- MATERIAL
         parameters = {"YoungModulus": 70.0e9, "PoissonRatio": 0.34, "HardeningSlope": 10.0e9, "YieldStress": 300.0e6}
-        stabilization_parameter = 0.0001 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
-        # stabilization_parameter = parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        parameters = {"YoungModulus": 206.9e9, "PoissonRatio": 0.29, "HardeningSlope": 10.0e9, "YieldStress": 300.0e6}
+        # stabilization_parameter = 0.01 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        stabilization_parameter = parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         mat = Material(
             nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
             library_path="behaviour/src/libBehaviour.so",
-            library_name="FiniteStrainIsotropicLinearHardeningPlasticity",
+            # library_name="FiniteStrainIsotropicLinearHardeningPlasticity",
+            library_name="Voce",
             hypothesis=mgis_bv.Hypothesis.PLANESTRAIN,
             stabilization_parameter=stabilization_parameter,
             lagrange_parameter=parameters["YoungModulus"],
@@ -133,8 +137,8 @@ class TestMecha(TestCase):
                             perso = LinearSegmentedColormap.from_list("perso", colors, N=1000)
                             vmin = min(field_vals[:])
                             vmax = max(field_vals[:])
-                            # vmin = -3.656e9
-                            # vmax = 1.214e9
+                            # vmin = -6.656e9
+                            # vmax = 1.3e9
                             levels = np.linspace(vmin, vmax, 50, endpoint=True)
                             ticks = np.linspace(vmin, vmax, 10, endpoint=True)
                             datad = ax0d.tricontourf(x, y, field_vals[:], cmap=perso, levels=levels)
