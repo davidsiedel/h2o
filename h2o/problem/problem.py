@@ -8,11 +8,6 @@ from h2o.problem.material import Material
 from h2o.field.field import Field
 from h2o.h2o import *
 
-# from scipy.sparse.linalg import spsolve
-# from scipy.sparse import csr_matrix
-#
-# from mgis import behaviour as mgis_bv
-
 
 def clean_res_dir(res_folder_path: str):
     """
@@ -368,7 +363,9 @@ class Problem:
                 face_vertices_indices = self.mesh.faces_vertices_connectivity[global_face_index]
                 face_vertices = self.mesh.vertices[:, face_vertices_indices]
                 face_shape_type = self.mesh.faces_shape_types[global_face_index]
-                # face = Face(face_shape_type, face_vertices, integration_order, quadrature_type=quadrature_type)
+                # print(global_face_index)
+                # print(face_vertices)
+                # print(cell_vertices)
                 face = Shape(face_shape_type, face_vertices)
                 element_faces.append(face)
             # print(cell_index)
@@ -383,29 +380,6 @@ class Problem:
             elements.append(element)
             del element_cell
             del element_faces
-        # constrained_system_size, system_size = self.get_total_system_size()
-        # iter_face_constraint = 0
-        # for boundary_condition in self.boundary_conditions:
-        #     if boundary_condition.boundary_type == BoundaryType.DISPLACEMENT:
-        #         for element in elements:
-        #             for f_local, f_global in enumerate(element.faces_indices):
-        #                 if f_global in self.mesh.faces_boundaries_connectivity[boundary_condition.boundary_name]:
-        #                     _l0 = system_size + iter_face_constraint * _fk
-        #                     _l1 = system_size + (iter_face_constraint + 1) * _fk
-        #                     _c0 = _cl * _dx + (f_local * _dx * _fk) + boundary_condition.direction * _fk
-        #                     _c1 = _cl * _dx + (f_local * _dx * _fk) + (boundary_condition.direction + 1) * _fk
-        #                     _r0 = f_global * _fk * _dx + _fk * boundary_condition.direction
-        #                     _r1 = f_global * _fk * _dx + _fk * (boundary_condition.direction + 1)
-        #                     element.faces_lagrange_system_row_positions[f_local][boundary_condition.direction] = (
-        #                         _l0,
-        #                         _l1,
-        #                     )
-        #                     element.faces_lagrange_system_col_positions[f_local][boundary_condition.direction] = (
-        #                         _r0,
-        #                         _r1,
-        #                     )
-        #                     element.faces_lagrange_local_positions[f_local][boundary_condition.direction] = (_c0, _c1)
-        #                     iter_face_constraint += 1
         return elements
 
     def __check_loads(self, loads: List[Load]):

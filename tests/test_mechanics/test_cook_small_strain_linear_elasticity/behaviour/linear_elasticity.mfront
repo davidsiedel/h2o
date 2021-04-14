@@ -6,6 +6,7 @@
  (the most simple one in fact).
 }
 
+//@StrainMeasure Hencky;
 // parameters
 @Parameter young =  70.e9;
 //@Parameter young = 1.124999981250001;

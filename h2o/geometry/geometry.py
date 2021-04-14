@@ -80,6 +80,7 @@ def check_points_non_alignment(vertices: ndarray):
             tol = 1.e-10
             if (0.0 - tol > cos_theta > 0.0 + tol) or (-(1.0 - tol) > cos_theta > -(1.0 + tol)):
                 raise GeometryError("points are aligned")
+                # pass
 
 
 def check_points_coplanar(vertices: ndarray):
@@ -110,3 +111,4 @@ def check_points_coplanar(vertices: ndarray):
                 #     raise GeometryError("points are not coplanar")
                 if not 0.0 - tol < cos_theta < 0.0 + tol and not -(1.0 - tol) < cos_theta < -(1.0 + tol):
                     raise GeometryError("points are not coplanar")
+                    # pass

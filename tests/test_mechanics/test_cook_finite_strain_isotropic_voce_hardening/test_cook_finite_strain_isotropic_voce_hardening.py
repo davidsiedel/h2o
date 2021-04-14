@@ -49,7 +49,8 @@ class TestMecha(TestCase):
         # --- MESH
         # mesh_file_path = "meshes/cook_quadrangles_1.msh"
         # mesh_file_path = "meshes/cook_quadrangles_0.msh"
-        mesh_file_path = "meshes/cook_10.geof"
+        mesh_file_path = "meshes/cook_10_quadrangles_structured.msh"
+        # mesh_file_path = "meshes/cook_10_triangles_structured.msh"
 
         # --- FIELD
         displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN)
@@ -79,7 +80,8 @@ class TestMecha(TestCase):
         # --- MATERIAL
         parameters = {"YoungModulus": 206.e9, "PoissonRatio": 0.29, "HardeningSlope": 10.0e9, "YieldStress": 300.0e6}
         # stabilization_parameter = 1000. * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
-        stabilization_parameter = 0.0001 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        stabilization_parameter = 0.00005 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        # stabilization_parameter = 0.0000 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         # stabilization_parameter = 1.0 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         mat = Material(
             nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
@@ -100,7 +102,8 @@ class TestMecha(TestCase):
 
         # plot_det_f(46, "res")
 
-        res_folder = "res"
+        # res_folder = "res"
+        res_folder = "/home/dsiedel/projetcs/h2o/tests/test_mechanics/test_cook_finite_strain_isotropic_voce_hardening/res_cook_20_ord1_quad/res"
         from os import walk, path
         import matplotlib.pyplot as plt
         from matplotlib.colors import LinearSegmentedColormap
@@ -126,6 +129,8 @@ class TestMecha(TestCase):
                         eucli_d = displacement.euclidean_dimension
                         points = np.zeros((eucli_d, number_of_points), dtype=real)
                         field_vals = np.zeros((number_of_points,), dtype=real)
+                        field_min_val = np.inf
+                        field_max_val = -np.inf
                         for l_count, line in enumerate(c_hho[1:]):
                             x_coordinates = float(line.split(",")[0])
                             y_coordinates = float(line.split(",")[1])
@@ -133,14 +138,19 @@ class TestMecha(TestCase):
                             points[0, l_count] += x_coordinates
                             points[1, l_count] += y_coordinates
                             field_vals[l_count] += field_value
+                            # if field_vals[l_count]
                         x, y = points
                         colors = [(0, 0, 1), (0, 1, 1), (0, 1, 0), (1, 1, 0), (1, 0, 0)]
-                        perso = LinearSegmentedColormap.from_list("perso", colors, N=1000)
+                        # perso = LinearSegmentedColormap.from_list("perso", colors, N=1000)
+                        perso = LinearSegmentedColormap.from_list("perso", colors, N=20)
                         vmin = min(field_vals[:])
                         vmax = max(field_vals[:])
-                        # vmin = -3.656e9
-                        # vmax = 1.214e9
-                        levels = np.linspace(vmin, vmax, 50, endpoint=True)
+                        vmin = 300.e6
+                        vmax = 400.e6
+                        vmin = 8.e8/3.
+                        vmax = 12.e8/3.
+                        # levels = np.linspace(vmin, vmax, 50, endpoint=True)
+                        levels = np.linspace(vmin, vmax, 20, endpoint=True)
                         ticks = np.linspace(vmin, vmax, 10, endpoint=True)
                         datad = ax0d.tricontourf(x, y, field_vals[:], cmap=perso, levels=levels)
                         ax0d.get_xaxis().set_visible(False)
@@ -155,7 +165,8 @@ class TestMecha(TestCase):
             # __plot(15, tsindex)
             pass
         # __plot(15, 19)
-        __plot(15, 22)
+        __plot(15, 24)
+        # __plot(15, 37)
         # __plot(3)
 
         # --- POST PROCESSING

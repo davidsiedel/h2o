@@ -15,15 +15,8 @@ from h2o.problem.resolution.exact import solve_newton_exact
 
 
 class TestMecha(TestCase):
-    def test_cook_small_strain_linear_elasticity(self):
+    def test_cook_finite_strain_linear_elasticity(self):
         # --- VALUES
-        time_steps = np.linspace(0.0, 6.0e-3, 50)
-        P_min = 1.
-        P_max = 70.e9 / 16.
-        # P_min = 0.01
-        # P_max = 1. / 16.
-        time_steps = np.linspace(P_min, P_max, 2)
-        iterations = 100
         # -------
         P_min = 1000.
         P_max = 5.e6 / (16.e-3)
@@ -57,7 +50,7 @@ class TestMecha(TestCase):
         mesh_file_path = "meshes/cook_quadrangles_1.msh"
         mesh_file_path = "meshes/cook_quadrangles_0.msh"
         mesh_file_path = "meshes/cook_triangles_0.msh"
-        mesh_file_path = "meshes/cook_30.geof"
+        mesh_file_path = "meshes/cook_20.geof"
         # mesh_file_path = "meshes/cook_5.geof"
 
         # --- FIELD
@@ -73,36 +66,36 @@ class TestMecha(TestCase):
         )
 
         # --- PROBLEM
-        # p = Problem(
-        #     mesh_file_path=mesh_file_path,
-        #     field=displacement,
-        #     finite_element=finite_element,
-        #     time_steps=time_steps,
-        #     iterations=iterations,
-        #     boundary_conditions=boundary_conditions,
-        #     loads=loads,
-        #     quadrature_type=QuadratureType.GAUSS,
-        #     tolerance=1.0e-4,
-        #     res_folder_path=get_current_res_folder_path()
-        # )
+        p = Problem(
+            mesh_file_path=mesh_file_path,
+            field=displacement,
+            finite_element=finite_element,
+            time_steps=time_steps,
+            iterations=iterations,
+            boundary_conditions=boundary_conditions,
+            loads=loads,
+            quadrature_type=QuadratureType.GAUSS,
+            tolerance=1.0e-4,
+            res_folder_path=get_current_res_folder_path()
+        )
 
         # --- MATERIAL
         parameters = {"YoungModulus": 70.0e9, "PoissonRatio": 0.4999}
         stabilization_parameter = 0.0005 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         # stabilization_parameter = parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
-        # mat = Material(
-        #     nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
-        #     library_path="behaviour/src/libBehaviour.so",
-        #     library_name="Elasticity",
-        #     hypothesis=mgis_bv.Hypothesis.PLANESTRAIN,
-        #     stabilization_parameter=stabilization_parameter,
-        #     lagrange_parameter=parameters["YoungModulus"],
-        #     field=displacement,
-        #     parameters=None,
-        # )
+        mat = Material(
+            nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
+            library_path="behaviour/src/libBehaviour.so",
+            library_name="Voce",
+            hypothesis=mgis_bv.Hypothesis.PLANESTRAIN,
+            stabilization_parameter=stabilization_parameter,
+            lagrange_parameter=parameters["YoungModulus"],
+            field=displacement,
+            parameters=None,
+        )
 
         # --- SOLVE
-        # solve_newton_2(p, mat, verbose=False, debug_mode=DebugMode.NONE)
+        solve_newton_2(p, mat, verbose=False, debug_mode=DebugMode.NONE)
         # solve_newton_exact(p, mat, verbose=False, debug_mode=DebugMode.NONE)
 
         res_folder = "res"
@@ -135,10 +128,10 @@ class TestMecha(TestCase):
                             x, y = points
                             colors = [(0, 0, 1), (0, 1, 1), (0, 1, 0), (1, 1, 0), (1, 0, 0)]
                             perso = LinearSegmentedColormap.from_list("perso", colors, N=1000)
-                            # vmin = min(field_vals[:])
-                            # vmax = max(field_vals[:])
-                            vmin = -3900.e6
-                            vmax = 627.e6
+                            vmin = min(field_vals[:])
+                            vmax = max(field_vals[:])
+                            # vmin = -3900.e6
+                            # vmax = 627.e6
                             levels = np.linspace(vmin, vmax, 50, endpoint=True)
                             ticks = np.linspace(vmin, vmax, 10, endpoint=True)
                             datad = ax0d.tricontourf(x, y, field_vals[:], cmap=perso, levels=levels)

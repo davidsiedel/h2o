@@ -270,7 +270,9 @@ def build_mesh(msh_file_path: str):
     vertices = np.zeros((euclidean_dimension, num_nodes), dtype=real)
     for i, node in enumerate(node_entities):
         node_array = np.array([node.x, node.y, node.z])
-        vertices[:, i] = node_array[:euclidean_dimension]
+        # print("NODETAG : {}".format(node.tag))
+        # vertices[:, i] = node_array[:euclidean_dimension]
+        vertices[:, node.tag] = node_array[:euclidean_dimension]
     cells_vertices_connectivity = []
     cells_ordering = []
     cells_shape_types = []

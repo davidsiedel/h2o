@@ -36,16 +36,19 @@ class TestMecha(TestCase):
             return 0.0
 
         boundary_conditions = [
-            BoundaryCondition("RIGHT", pull, BoundaryType.PRESSURE, 1),
-            BoundaryCondition("LEFT", fixed, BoundaryType.DISPLACEMENT, 1),
-            BoundaryCondition("LEFT", fixed, BoundaryType.DISPLACEMENT, 0),
+            BoundaryCondition("INDENT", pull, BoundaryType.PRESSURE, 2),
+            BoundaryCondition("BOTTOM", fixed, BoundaryType.DISPLACEMENT, 0),
+            BoundaryCondition("BOTTOM", fixed, BoundaryType.DISPLACEMENT, 1),
+            BoundaryCondition("BOTTOM", fixed, BoundaryType.DISPLACEMENT, 2),
         ]
 
         # --- MESH
-        mesh_file_path = "meshes/cook_10.geof"
+        mesh_file_path = "meshes/cube_indent.msh"
+        # mesh_file_path = "meshes/cube_test.msh"
+        # mesh_file_path = "meshes/try_0.msh"
 
         # --- FIELD
-        displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_SMALL_STRAIN)
+        displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN)
 
         # --- FINITE ELEMENT
         finite_element = FiniteElement(
@@ -77,8 +80,8 @@ class TestMecha(TestCase):
         mat = Material(
             nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
             library_path="behaviour/src/libBehaviour.so",
-            library_name="Voce",
-            hypothesis=mgis_bv.Hypothesis.PLANESTRAIN,
+            library_name="FiniteStrainIsotropicLinearHardeningPlasticity",
+            hypothesis=mgis_bv.Hypothesis.TRIDIMENSIONAL,
             stabilization_parameter=stabilization_parameter,
             lagrange_parameter=parameters["YoungModulus"],
             field=displacement,
