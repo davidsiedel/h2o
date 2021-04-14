@@ -48,6 +48,7 @@ class TestMecha(TestCase):
         mesh_file_path = "meshes/cook_quadrangles_1.msh"
         mesh_file_path = "meshes/cook_quadrangles_0.msh"
         mesh_file_path = "meshes/cook_triangles_0.msh"
+        mesh_file_path = "meshes/cook_10.geof"
 
         # --- FIELD
         displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_SMALL_STRAIN_PLANE_STRAIN)
@@ -76,8 +77,8 @@ class TestMecha(TestCase):
 
         # --- MATERIAL
         parameters = {"YoungModulus": 70.0e9, "PoissonRatio": 0.4999}
-        # stabilization_parameter = 0.001 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
-        stabilization_parameter = parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        stabilization_parameter = 0.001 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        # stabilization_parameter = parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         mat = Material(
             nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
             library_path="behaviour/src/libBehaviour.so",
@@ -136,4 +137,4 @@ class TestMecha(TestCase):
                             # plt.savefig("/home/dsiedel/Projects/pythhon/plots/{}.png".format(time_step))
                             plt.show()
 
-        __plot(12)
+        __plot(13)
