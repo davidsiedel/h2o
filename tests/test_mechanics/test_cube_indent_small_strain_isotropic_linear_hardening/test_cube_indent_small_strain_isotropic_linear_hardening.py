@@ -16,10 +16,10 @@ from h2o.problem.resolution.exact import solve_newton_exact
 class TestMecha(TestCase):
     def test_cube_indent_small_strain_isotropic_linear_hardening(self):
         # --- VALUES
-        P_min = 10.
-        P_max = 5.e6 / (16.e-3)
-        time_steps = np.linspace(P_min, P_max, 25)
-        print(time_steps)
+        P_min = 0.
+        P_max = 350e6
+        time_steps = np.linspace(P_min, P_max, 10)
+        print("temps:",time_steps)
         iterations = 10
 
         # --- LOAD
@@ -36,14 +36,13 @@ class TestMecha(TestCase):
             return 0.0
 
         boundary_conditions = [
-            BoundaryCondition("INDENT", pull, BoundaryType.PRESSURE, 2),
-            BoundaryCondition("BOTTOM", fixed, BoundaryType.DISPLACEMENT, 0),
-            BoundaryCondition("BOTTOM", fixed, BoundaryType.DISPLACEMENT, 1),
-            BoundaryCondition("BOTTOM", fixed, BoundaryType.DISPLACEMENT, 2),
+            BoundaryCondition("indent", pull, BoundaryType.PRESSURE, 2),
+            BoundaryCondition("bottom", fixed, BoundaryType.DISPLACEMENT, 2),
+            BoundaryCondition("bottom", fixed, BoundaryType.DISPLACEMENT, 1),
+            BoundaryCondition("bottom", fixed, BoundaryType.DISPLACEMENT, 0),
         ]
-
         # --- MESH
-        mesh_file_path = "meshes/cube_indent.msh"
+        mesh_file_path = "meshes/maillage_grossier.msh"
         # mesh_file_path = "meshes/cube_test.msh"
         # mesh_file_path = "meshes/try_0.msh"
 
@@ -73,13 +72,13 @@ class TestMecha(TestCase):
         )
 
         # --- MATERIAL
-        parameters = {"YoungModulus": 206.e9, "PoissonRatio": 0.29, "HardeningSlope": 10.0e9, "YieldStress": 300.0e6}
+        parameters = {"YoungModulus": 200.e9, "PoissonRatio": 0.3, "HardeningSlope": 10.0e9, "YieldStress": 150.0e6}
         # stabilization_parameter = 1000. * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
-        stabilization_parameter = 0.0001 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        stabilization_parameter = 0.01 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         # stabilization_parameter = 1.0 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         mat = Material(
             nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
-            library_path="behaviour/src/libBehaviour.so",
+            library_path="behaviour/src/libBehaviour.dylib",
             library_name="FiniteStrainIsotropicLinearHardeningPlasticity",
             hypothesis=mgis_bv.Hypothesis.TRIDIMENSIONAL,
             stabilization_parameter=stabilization_parameter,
