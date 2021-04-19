@@ -177,14 +177,14 @@ class Problem:
             res_output_file.write("$EndElements\n")
             # res_output_file.write("$NodeData\n")
 
-    def fill_quadrature_stress_output(self, res_folder_path: str, field_label: str, time_step_index: int, material: Material):
+    def fill_quadrature_stress_output(self, res_folder_path: str, field_label: str, time_step_index: int, time_step_value: float, material: Material):
         res_file_path = os.path.join(res_folder_path, "output.msh")
         with open(res_file_path, "a") as res_output_file:
             res_output_file.write("$NodeData\n")
             res_output_file.write("1\n")
             res_output_file.write("\"{}\"\n".format(field_label))
             res_output_file.write("1\n")
-            res_output_file.write("0\n")
+            res_output_file.write("{}\n".format(time_step_value))
             res_output_file.write("3\n") # number of real tags
             res_output_file.write("{}\n".format(time_step_index)) # time step
             # res_output_file.write("{}\n".format(0)) # time step
@@ -298,14 +298,15 @@ class Problem:
                         res_output_file.write("{}\n".format(stress_component))
             res_output_file.write("$EndNodeData\n")
 
-    def fill_quadrature_strain_output(self, res_folder_path: str, field_label: str, time_step_index: int, material: Material):
+    def fill_quadrature_strain_output(self, res_folder_path: str, field_label: str, time_step_index: int, time_step_value: float, material: Material):
         res_file_path = os.path.join(res_folder_path, "output.msh")
         with open(res_file_path, "a") as res_output_file:
             res_output_file.write("$NodeData\n")
             res_output_file.write("1\n")
             res_output_file.write("\"{}\"\n".format(field_label))
             res_output_file.write("1\n")
-            res_output_file.write("0\n")
+            # res_output_file.write("0\n")
+            res_output_file.write("{}\n".format(time_step_value))
             res_output_file.write("3\n") # number of real tags
             res_output_file.write("{}\n".format(time_step_index)) # time step
             # res_output_file.write("{}\n".format(0)) # time step
