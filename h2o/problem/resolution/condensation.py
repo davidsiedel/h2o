@@ -387,8 +387,8 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
                 problem.write_vertex_res_files(problem.res_folder_path, file_suffix, faces_unknown_vector)
                 problem.write_quadrature_points_res_files(problem.res_folder_path, file_suffix, material, faces_unknown_vector)
                 # problem.create_output(problem.res_folder_path)
-                problem.fill_quadrature_stress_output(problem.res_folder_path, "CAUCHY_STRESS", time_step_index_count, material)
-                problem.fill_quadrature_strain_output(problem.res_folder_path, "STRAIN", time_step_index_count, material)
+                problem.fill_quadrature_stress_output(problem.res_folder_path, "CAUCHY_STRESS", time_step_index_count, time_step, material)
+                problem.fill_quadrature_strain_output(problem.res_folder_path, "STRAIN", time_step_index_count, time_step, material)
                 # problem.close_output(problem.res_folder_path)
                 time_step_index_count += 1
                 faces_unknown_vector_previous_step = np.copy(faces_unknown_vector)
