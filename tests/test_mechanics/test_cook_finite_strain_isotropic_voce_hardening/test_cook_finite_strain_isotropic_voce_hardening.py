@@ -18,12 +18,14 @@ class TestMecha(TestCase):
         # --- VALUES
         time_steps = np.linspace(0.0, 7.0e-3, 50)
         time_steps = np.linspace(0.0, 14.e-3, 150)
-        P_min = 10.
+        P_min = 0.0
         P_max = 5.e6 / (16.e-3)
+        # P_max = 3.e8
         # P_min = 0.01
         # P_max = 1. / 16.
         # time_steps = np.linspace(P_min, P_max, 20)[:-3]
-        time_steps = np.linspace(P_min, P_max, 25)
+        time_steps = np.linspace(P_min, P_max, 10)
+        time_steps = list(time_steps) + [P_max]
         print(time_steps)
         iterations = 10
 
@@ -47,10 +49,14 @@ class TestMecha(TestCase):
         ]
 
         # --- MESH
+        mesh_file_path = "meshes/cook_5.geof"
+        # mesh_file_path = "meshes/cook_30.geof"
         # mesh_file_path = "meshes/cook_quadrangles_1.msh"
         # mesh_file_path = "meshes/cook_quadrangles_0.msh"
-        mesh_file_path = "meshes/cook_10_quadrangles_structured.msh"
+        # mesh_file_path = "meshes/cook_20_quadrangles_structured.msh"
+        # mesh_file_path = "meshes/cook_01_quadrangles_structured.msh"
         # mesh_file_path = "meshes/cook_10_triangles_structured.msh"
+        mesh_file_path = "meshes/cook_16_triangles_structured.msh"
 
         # --- FIELD
         displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN)
@@ -81,6 +87,7 @@ class TestMecha(TestCase):
         parameters = {"YoungModulus": 206.e9, "PoissonRatio": 0.29, "HardeningSlope": 10.0e9, "YieldStress": 300.0e6}
         # stabilization_parameter = 1000. * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         stabilization_parameter = 0.00005 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        stabilization_parameter = 0.001 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         # stabilization_parameter = 0.0000 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         # stabilization_parameter = 1.0 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         mat = Material(
@@ -102,8 +109,8 @@ class TestMecha(TestCase):
 
         # plot_det_f(46, "res")
 
-        # res_folder = "res"
-        res_folder = "/home/dsiedel/projetcs/h2o/tests/test_mechanics/test_cook_finite_strain_isotropic_voce_hardening/res_cook_20_ord1_quad/res"
+        res_folder = "res"
+        # res_folder = "/home/dsiedel/projetcs/h2o/tests/test_mechanics/test_cook_finite_strain_isotropic_voce_hardening/res_cook_20_ord1_quad/res"
         from os import walk, path
         import matplotlib.pyplot as plt
         from matplotlib.colors import LinearSegmentedColormap
@@ -145,10 +152,10 @@ class TestMecha(TestCase):
                         perso = LinearSegmentedColormap.from_list("perso", colors, N=20)
                         vmin = min(field_vals[:])
                         vmax = max(field_vals[:])
-                        vmin = 300.e6
-                        vmax = 400.e6
-                        vmin = 8.e8/3.
-                        vmax = 12.e8/3.
+                        # vmin = 300.e6
+                        # vmax = 400.e6
+                        # vmin = 8.e8/3.
+                        # vmax = 12.e8/3.
                         # levels = np.linspace(vmin, vmax, 50, endpoint=True)
                         levels = np.linspace(vmin, vmax, 20, endpoint=True)
                         ticks = np.linspace(vmin, vmax, 10, endpoint=True)
@@ -165,7 +172,7 @@ class TestMecha(TestCase):
             # __plot(15, tsindex)
             pass
         # __plot(15, 19)
-        __plot(15, 24)
+        __plot(15, 34)
         # __plot(15, 37)
         # __plot(3)
 

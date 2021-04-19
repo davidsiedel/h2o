@@ -220,3 +220,27 @@ def get_element_data(tag: int) -> ElementData:
         return ElementDictionary.PNT_001
     else:
         raise ValueError("NO")
+
+def get_element_tag(shape: ShapeType) -> int:
+    """
+
+    Args:
+        tag:
+
+    Returns:
+
+    """
+    if shape == ShapeType.POINT:
+        return 15
+    elif shape == ShapeType.SEGMENT:
+        return 1
+    elif shape == ShapeType.TRIANGLE:
+        return 2
+    elif shape == ShapeType.QUADRANGLE:
+        return 3
+    elif shape == ShapeType.TETRAHEDRON:
+        return 4
+    elif shape == ShapeType.HEXAHEDRON:
+        return 5
+    else:
+        raise ValueError("NO")

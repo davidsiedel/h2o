@@ -1,3 +1,4 @@
+from h2o.mesh.gmsh.data import get_element_tag
 from h2o.mesh.mesh import Mesh
 from h2o.fem.element.element import Element
 from h2o.geometry.shape import Shape
@@ -70,6 +71,7 @@ class Problem:
         self.res_folder_path = res_folder_path
         self.finite_element = finite_element
         self.field = field
+        self.mesh_file_path = mesh_file_path
         self.mesh = Mesh(mesh_file_path=mesh_file_path, integration_order=finite_element.construction_integration_order)
         self.__check_loads(loads)
         self.__check_boundary_conditions(boundary_conditions)
@@ -103,6 +105,298 @@ class Problem:
         system_size = self.mesh.number_of_faces_in_mesh * self.finite_element.face_basis_k.dimension * self.field.field_dimension
         constrained_system_size = system_size + lagrange_system_size
         return constrained_system_size, system_size
+
+    def create_output(self, res_folder_path: str):
+        res_file_path = os.path.join(res_folder_path, "output.msh")
+        with open(res_file_path, "w") as res_output_file:
+            res_output_file.write("$MeshFormat\n2.2 0 8\n$EndMeshFormat\n$Nodes\n")
+            # res_output_file.write("$MeshFormat\n4.1 0 8\n$EndMeshFormat\n$Nodes\n")
+            nnodes = self.mesh.number_of_vertices_in_mesh + self.mesh.number_of_cell_quadrature_points_in_mesh
+            res_output_file.write("{}\n".format(nnodes))
+            # res_output_file.write("1 {} 1 {}\n".format(nnodes, nnodes))
+            for v_count in range(self.mesh.number_of_vertices_in_mesh):
+                vertex_fill = np.zeros((3,), dtype=real)
+                vertex_fill[:len(self.mesh.vertices[:,v_count])] = self.mesh.vertices[:,v_count]
+                res_output_file.write("{} {} {} {}\n".format(v_count + 1, vertex_fill[0], vertex_fill[1], vertex_fill[2]))
+            q_count = self.mesh.number_of_vertices_in_mesh
+            for element in self.elements:
+                cell_quadrature_size = element.cell.get_quadrature_size(
+                    element.finite_element.construction_integration_order
+                )
+                cell_quadrature_points = element.cell.get_quadrature_points(
+                    element.finite_element.construction_integration_order
+                )
+                for qc in range(cell_quadrature_size):
+                    x_q_c = cell_quadrature_points[:, qc]
+                    qp_fill = np.zeros((3,), dtype=real)
+                    qp_fill[:len(x_q_c)] = x_q_c
+                    res_output_file.write("{} {} {} {}\n".format(q_count + 1, qp_fill[0], qp_fill[1], qp_fill[2]))
+                    q_count += 1
+            res_output_file.write("$EndNodes\n")
+            res_output_file.write("$Elements\n")
+            n_elems = nnodes + len(self.mesh.faces_vertices_connectivity) + len(self.mesh.cells_vertices_connectivity)
+            res_output_file.write("{}\n".format(n_elems))
+            elem_count = 1
+            for v_count in range(self.mesh.number_of_vertices_in_mesh):
+                res_output_file.write("{} 15 2 0 0 {}\n".format(elem_count, elem_count))
+                elem_count += 1
+            # q_count = self.mesh.number_of_vertices_in_mesh
+            for element in self.elements:
+                cell_quadrature_size = element.cell.get_quadrature_size(
+                    element.finite_element.construction_integration_order
+                )
+                cell_quadrature_points = element.cell.get_quadrature_points(
+                    element.finite_element.construction_integration_order
+                )
+                for qc in range(cell_quadrature_size):
+                    x_q_c = cell_quadrature_points[:, qc]
+                    qp_fill = np.zeros((3,), dtype=real)
+                    qp_fill[:len(x_q_c)] = x_q_c
+                    res_output_file.write("{} 15 2 1 1 {}\n".format(elem_count, elem_count))
+                    elem_count += 1
+                    # res_output_file.write("{} {} {} {}\n".format(q_count + 1, qp_fill[0], qp_fill[1], qp_fill[2]))
+                    # q_count += 1
+            for face_connectivity, face_shape in zip(self.mesh.faces_vertices_connectivity, self.mesh.faces_shape_types):
+                elem_tag = get_element_tag(face_shape)
+                res_output_file.write("{} {} 2 0 0 ".format(elem_count, elem_tag))
+                for i_loc, coord in enumerate(face_connectivity):
+                    if i_loc != len(face_connectivity) - 1:
+                        res_output_file.write("{} ".format(coord + 1))
+                    else:
+                        res_output_file.write("{}\n".format(coord + 1))
+                elem_count += 1
+            for cell_connectivity, cell_shape in zip(self.mesh.cells_vertices_connectivity, self.mesh.cells_shape_types):
+                elem_tag = get_element_tag(cell_shape)
+                res_output_file.write("{} {} 2 0 0 ".format(elem_count, elem_tag))
+                for i_loc, coord in enumerate(cell_connectivity):
+                    if i_loc != len(cell_connectivity) - 1:
+                        res_output_file.write("{} ".format(coord + 1))
+                    else:
+                        res_output_file.write("{}\n".format(coord + 1))
+                elem_count += 1
+            res_output_file.write("$EndElements\n")
+            # res_output_file.write("$NodeData\n")
+
+    def fill_quadrature_stress_output(self, res_folder_path: str, field_label: str, time_step_index: int, material: Material):
+        res_file_path = os.path.join(res_folder_path, "output.msh")
+        with open(res_file_path, "a") as res_output_file:
+            res_output_file.write("$NodeData\n")
+            res_output_file.write("1\n")
+            res_output_file.write("\"{}\"\n".format(field_label))
+            res_output_file.write("1\n")
+            res_output_file.write("0\n")
+            res_output_file.write("3\n") # number of real tags
+            res_output_file.write("{}\n".format(time_step_index)) # time step
+            # res_output_file.write("{}\n".format(0)) # time step
+            field_size = len(material.mat_data.s1.gradients[0])
+            # res_output_file.write("{}\n".format(field_size)) # dim of the field (vector 3, tensor 9, ...)
+            res_output_file.write("{}\n".format(9)) # dim of the field (vector 3, tensor 9, ...)
+            res_output_file.write("{}\n".format(self.mesh.number_of_cell_quadrature_points_in_mesh))
+            for qp in range(material.mat_data.n):
+                res_output_file.write("{} ".format(qp + 1 + self.mesh.number_of_vertices_in_mesh))
+                # for g_dir in range(self.field.gradient_dimension):
+                for g_dir in range(9):
+                    if self.field.grad_type == GradType.DISPLACEMENT_TRANSFORMATION_GRADIENT:
+                        if self.field.field_type in [FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN,
+                                                     FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRESS]:
+                            F = np.zeros((3, 3), dtype=real)
+                            F[0, 0] = material.mat_data.s1.gradients[qp, 0]
+                            F[1, 1] = material.mat_data.s1.gradients[qp, 1]
+                            F[2, 2] = material.mat_data.s1.gradients[qp, 2]
+                            F[0, 1] = material.mat_data.s1.gradients[qp, 3]
+                            F[1, 0] = material.mat_data.s1.gradients[qp, 4]
+                            PK = np.zeros((3, 3), dtype=real)
+                            PK[0, 0] = material.mat_data.s1.thermodynamic_forces[qp, 0]
+                            PK[1, 1] = material.mat_data.s1.thermodynamic_forces[qp, 1]
+                            PK[2, 2] = material.mat_data.s1.thermodynamic_forces[qp, 2]
+                            PK[0, 1] = material.mat_data.s1.thermodynamic_forces[qp, 3]
+                            PK[1, 0] = material.mat_data.s1.thermodynamic_forces[qp, 4]
+                            J = np.linalg.det(F)
+                            # F_T_inv = np.linalg.inv(F.T)
+                            sig = (1.0 / J) * PK @ F.T
+                            # sig_vect = np.zeros((5,), dtype=real)
+                            sig_vect = np.zeros((9,), dtype=real)
+                            # sig_vect[0] = sig[0, 0]
+                            # sig_vect[1] = sig[1, 1]
+                            # sig_vect[2] = sig[2, 2]
+                            # sig_vect[3] = sig[0, 1]
+                            # sig_vect[4] = sig[1, 0]
+                            sig_vect[0] = sig[0, 0]
+                            sig_vect[1] = sig[1, 1]
+                            sig_vect[2] = sig[2, 2]
+                            sig_vect[3] = sig[0, 1]
+                            sig_vect[4] = sig[1, 0]
+                            sig_vect[5] = sig[0, 2]
+                            sig_vect[6] = sig[2, 0]
+                            sig_vect[7] = sig[1, 2]
+                            sig_vect[8] = sig[2, 1]
+                            stress_component = sig_vect[g_dir]
+                        elif self.field.field_type == FieldType.DISPLACEMENT_LARGE_STRAIN:
+                            F = np.zeros((3, 3), dtype=real)
+                            F[0, 0] = material.mat_data.s1.gradients[qp, 0]
+                            F[1, 1] = material.mat_data.s1.gradients[qp, 1]
+                            F[2, 2] = material.mat_data.s1.gradients[qp, 2]
+                            F[0, 1] = material.mat_data.s1.gradients[qp, 3]
+                            F[1, 0] = material.mat_data.s1.gradients[qp, 4]
+                            F[0, 2] = material.mat_data.s1.gradients[qp, 5]
+                            F[2, 0] = material.mat_data.s1.gradients[qp, 6]
+                            F[1, 2] = material.mat_data.s1.gradients[qp, 7]
+                            F[2, 1] = material.mat_data.s1.gradients[qp, 8]
+                            PK = np.zeros((3, 3), dtype=real)
+                            PK[0, 0] = material.mat_data.s1.thermodynamic_forces[qp, 0]
+                            PK[1, 1] = material.mat_data.s1.thermodynamic_forces[qp, 1]
+                            PK[2, 2] = material.mat_data.s1.thermodynamic_forces[qp, 2]
+                            PK[0, 1] = material.mat_data.s1.thermodynamic_forces[qp, 3]
+                            PK[1, 0] = material.mat_data.s1.thermodynamic_forces[qp, 4]
+                            PK[0, 2] = material.mat_data.s1.thermodynamic_forces[qp, 5]
+                            PK[2, 0] = material.mat_data.s1.thermodynamic_forces[qp, 6]
+                            PK[1, 2] = material.mat_data.s1.thermodynamic_forces[qp, 7]
+                            PK[2, 1] = material.mat_data.s1.thermodynamic_forces[qp, 8]
+                            J = np.linalg.det(F)
+                            # F_T_inv = np.linalg.inv(F.T)
+                            sig = (1.0 / J) * PK @ F.T
+                            sig_vect = np.zeros((9,), dtype=real)
+                            sig_vect[0] = sig[0, 0]
+                            sig_vect[1] = sig[1, 1]
+                            sig_vect[2] = sig[2, 2]
+                            sig_vect[3] = sig[0, 1]
+                            sig_vect[4] = sig[1, 0]
+                            sig_vect[5] = sig[0, 2]
+                            sig_vect[6] = sig[2, 0]
+                            sig_vect[7] = sig[1, 2]
+                            sig_vect[8] = sig[2, 1]
+                            stress_component = sig_vect[g_dir]
+                    elif self.field.grad_type == GradType.DISPLACEMENT_SMALL_STRAIN:
+                        if self.field.field_type == FieldType.DISPLACEMENT_SMALL_STRAIN:
+                            sig_vect = np.zeros((9,), dtype=real)
+                            sig_vect[0] = material.mat_data.s1.thermodynamic_forces[qp, 0]
+                            sig_vect[1] = material.mat_data.s1.thermodynamic_forces[qp, 1]
+                            sig_vect[2] = material.mat_data.s1.thermodynamic_forces[qp, 2]
+                            sig_vect[3] = (1./np.sqrt(2.)) * material.mat_data.s1.thermodynamic_forces[qp, 3]
+                            sig_vect[4] = (1./np.sqrt(2.)) * material.mat_data.s1.thermodynamic_forces[qp, 3]
+                            sig_vect[5] = (1./np.sqrt(2.)) * material.mat_data.s1.thermodynamic_forces[qp, 4]
+                            sig_vect[6] = (1./np.sqrt(2.)) * material.mat_data.s1.thermodynamic_forces[qp, 4]
+                            sig_vect[7] = (1./np.sqrt(2.)) * material.mat_data.s1.thermodynamic_forces[qp, 5]
+                            sig_vect[8] = (1./np.sqrt(2.)) * material.mat_data.s1.thermodynamic_forces[qp, 5]
+                            stress_component = sig_vect[g_dir]
+                        elif self.field.field_type in [FieldType.DISPLACEMENT_SMALL_STRAIN_PLANE_STRAIN, FieldType.DISPLACEMENT_SMALL_STRAIN_PLANE_STRESS]:
+                            sig_vect = np.zeros((9,), dtype=real)
+                            sig_vect[0] = material.mat_data.s1.thermodynamic_forces[qp, 0]
+                            sig_vect[1] = material.mat_data.s1.thermodynamic_forces[qp, 1]
+                            sig_vect[2] = material.mat_data.s1.thermodynamic_forces[qp, 2]
+                            sig_vect[3] = (1. / np.sqrt(2.)) * material.mat_data.s1.thermodynamic_forces[qp, 3]
+                            sig_vect[4] = (1. / np.sqrt(2.)) * material.mat_data.s1.thermodynamic_forces[qp, 3]
+                            sig_vect[5] = 0.0
+                            sig_vect[6] = 0.0
+                            sig_vect[7] = 0.0
+                            sig_vect[8] = 0.0
+                            stress_component = sig_vect[g_dir]
+                    # res_qdp_file.write("{},".format(stress_component))
+                    if g_dir != 9 - 1:
+                        res_output_file.write("{} ".format(stress_component))
+                    else:
+                        res_output_file.write("{}\n".format(stress_component))
+            res_output_file.write("$EndNodeData\n")
+
+    def fill_quadrature_strain_output(self, res_folder_path: str, field_label: str, time_step_index: int, material: Material):
+        res_file_path = os.path.join(res_folder_path, "output.msh")
+        with open(res_file_path, "a") as res_output_file:
+            res_output_file.write("$NodeData\n")
+            res_output_file.write("1\n")
+            res_output_file.write("\"{}\"\n".format(field_label))
+            res_output_file.write("1\n")
+            res_output_file.write("0\n")
+            res_output_file.write("3\n") # number of real tags
+            res_output_file.write("{}\n".format(time_step_index)) # time step
+            # res_output_file.write("{}\n".format(0)) # time step
+            field_size = len(material.mat_data.s1.gradients[0])
+            # res_output_file.write("{}\n".format(field_size)) # dim of the field (vector 3, tensor 9, ...)
+            res_output_file.write("{}\n".format(9)) # dim of the field (vector 3, tensor 9, ...)
+            res_output_file.write("{}\n".format(self.mesh.number_of_cell_quadrature_points_in_mesh))
+            for qp in range(material.mat_data.n):
+                res_output_file.write("{} ".format(qp + 1 + self.mesh.number_of_vertices_in_mesh))
+                # for g_dir in range(self.field.gradient_dimension):
+                for g_dir in range(9):
+                    if self.field.grad_type == GradType.DISPLACEMENT_TRANSFORMATION_GRADIENT:
+                        if self.field.field_type in [FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN,
+                                                     FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRESS]:
+                            F = np.zeros((3, 3), dtype=real)
+                            F[0, 0] = material.mat_data.s1.gradients[qp, 0]
+                            F[1, 1] = material.mat_data.s1.gradients[qp, 1]
+                            F[2, 2] = material.mat_data.s1.gradients[qp, 2]
+                            F[0, 1] = material.mat_data.s1.gradients[qp, 3]
+                            F[1, 0] = material.mat_data.s1.gradients[qp, 4]
+                            F_vect = np.zeros((9,), dtype=real)
+                            F_vect[0] = F[0, 0]
+                            F_vect[1] = F[1, 1]
+                            F_vect[2] = F[2, 2]
+                            F_vect[3] = F[0, 1]
+                            F_vect[4] = F[1, 0]
+                            F_vect[5] = F[0, 2]
+                            F_vect[6] = F[2, 0]
+                            F_vect[7] = F[1, 2]
+                            F_vect[8] = F[2, 1]
+                            strain_component = F_vect[g_dir]
+                        elif self.field.field_type == FieldType.DISPLACEMENT_LARGE_STRAIN:
+                            F = np.zeros((3, 3), dtype=real)
+                            F[0, 0] = material.mat_data.s1.gradients[qp, 0]
+                            F[1, 1] = material.mat_data.s1.gradients[qp, 1]
+                            F[2, 2] = material.mat_data.s1.gradients[qp, 2]
+                            F[0, 1] = material.mat_data.s1.gradients[qp, 3]
+                            F[1, 0] = material.mat_data.s1.gradients[qp, 4]
+                            F[0, 2] = material.mat_data.s1.gradients[qp, 5]
+                            F[2, 0] = material.mat_data.s1.gradients[qp, 6]
+                            F[1, 2] = material.mat_data.s1.gradients[qp, 7]
+                            F[2, 1] = material.mat_data.s1.gradients[qp, 8]
+                            F_vect = np.zeros((9,), dtype=real)
+                            F_vect[0] = F[0, 0]
+                            F_vect[1] = F[1, 1]
+                            F_vect[2] = F[2, 2]
+                            F_vect[3] = F[0, 1]
+                            F_vect[4] = F[1, 0]
+                            F_vect[5] = F[0, 2]
+                            F_vect[6] = F[2, 0]
+                            F_vect[7] = F[1, 2]
+                            F_vect[8] = F[2, 1]
+                            strain_component = F_vect[g_dir]
+                    elif self.field.grad_type == GradType.DISPLACEMENT_SMALL_STRAIN:
+                        if self.field.field_type == FieldType.DISPLACEMENT_SMALL_STRAIN:
+                            F_vect = np.zeros((9,), dtype=real)
+                            F_vect[0] = material.mat_data.s1.gradients[qp, 0]
+                            F_vect[1] = material.mat_data.s1.gradients[qp, 1]
+                            F_vect[2] = material.mat_data.s1.gradients[qp, 2]
+                            F_vect[3] = (1./np.sqrt(2.)) * material.mat_data.s1.gradients[qp, 3]
+                            F_vect[4] = (1./np.sqrt(2.)) * material.mat_data.s1.gradients[qp, 3]
+                            F_vect[5] = (1./np.sqrt(2.)) * material.mat_data.s1.gradients[qp, 4]
+                            F_vect[6] = (1./np.sqrt(2.)) * material.mat_data.s1.gradients[qp, 4]
+                            F_vect[7] = (1./np.sqrt(2.)) * material.mat_data.s1.gradients[qp, 5]
+                            F_vect[8] = (1./np.sqrt(2.)) * material.mat_data.s1.gradients[qp, 5]
+                            strain_component = F_vect[g_dir]
+                        elif self.field.field_type in [FieldType.DISPLACEMENT_SMALL_STRAIN_PLANE_STRAIN, FieldType.DISPLACEMENT_SMALL_STRAIN_PLANE_STRESS]:
+                            F_vect = np.zeros((9,), dtype=real)
+                            F_vect[0] = material.mat_data.s1.gradients[qp, 0]
+                            F_vect[1] = material.mat_data.s1.gradients[qp, 1]
+                            F_vect[2] = material.mat_data.s1.gradients[qp, 2]
+                            F_vect[3] = (1. / np.sqrt(2.)) * material.mat_data.s1.gradients[qp, 3]
+                            F_vect[4] = (1. / np.sqrt(2.)) * material.mat_data.s1.gradients[qp, 3]
+                            F_vect[5] = 0.0
+                            F_vect[6] = 0.0
+                            F_vect[7] = 0.0
+                            F_vect[8] = 0.0
+                            strain_component = F_vect[g_dir]
+                    # res_qdp_file.write("{},".format(stress_component))
+                    if g_dir != 9 - 1:
+                        res_output_file.write("{} ".format(strain_component))
+                    else:
+                        res_output_file.write("{}\n".format(strain_component))
+            res_output_file.write("$EndNodeData\n")
+
+    def close_output(self, res_folder_path: str):
+        res_file_path = os.path.join(res_folder_path, "output.msh")
+        with open(res_file_path, "a") as res_output_file:
+            res_output_file.write("$EndNodeData\n")
+
+
 
     def create_vertex_res_files(self, res_folder_path: str, suffix: str):
         """

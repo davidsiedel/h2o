@@ -295,7 +295,9 @@ def build_mesh(msh_file_path: str):
         raise ValueError("NO")
     number_of_cells_in_mesh = 0
     for element_entity in element_entities:
+        # print("elementitydim : {}".format(element_entity.entity_dim))
         if element_entity.entity_dim == euclidean_dimension:
+            # print("therrree")
             number_of_cells_in_mesh += 1
             cell_vertices_connectivity = [ii-1 for ii in element_entity.vertices_connectivity]
             cells_vertices_connectivity.append(cell_vertices_connectivity)

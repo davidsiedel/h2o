@@ -49,3 +49,5 @@ class FiniteElement:
         # --- INTEGRATION ORDERS
         self.construction_integration_order = 2 * (polynomial_order + 1)
         self.computation_integration_order = 2 * (polynomial_order + 1)
+        # self.construction_integration_order = 2 * (polynomial_order)
+        # self.computation_integration_order = 2 * (polynomial_order)

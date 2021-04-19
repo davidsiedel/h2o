@@ -36,15 +36,16 @@ class TestMecha(TestCase):
             return 0.0
 
         boundary_conditions = [
-            BoundaryCondition("INDENT", pull, BoundaryType.PRESSURE, 2),
-            BoundaryCondition("BOTTOM", fixed, BoundaryType.DISPLACEMENT, 0),
-            BoundaryCondition("BOTTOM", fixed, BoundaryType.DISPLACEMENT, 1),
-            BoundaryCondition("BOTTOM", fixed, BoundaryType.DISPLACEMENT, 2),
+            BoundaryCondition("indent", pull, BoundaryType.PRESSURE, 2),
+            BoundaryCondition("bottom", fixed, BoundaryType.DISPLACEMENT, 0),
+            BoundaryCondition("bottom", fixed, BoundaryType.DISPLACEMENT, 1),
+            BoundaryCondition("bottom", fixed, BoundaryType.DISPLACEMENT, 2),
         ]
 
         # --- MESH
-        mesh_file_path = "meshes/cube_indent.msh"
-        # mesh_file_path = "meshes/cube_test.msh"
+        # mesh_file_path = "meshes/cube_indent.msh"
+        # mesh_file_path = "meshes/maillage_grossier.msh"
+        mesh_file_path = "meshes/cube_test.msh"
         # mesh_file_path = "meshes/try_0.msh"
 
         # --- FIELD

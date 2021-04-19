@@ -9,7 +9,9 @@ import matplotlib.pyplot as plt
 
 
 def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, debug_mode: DebugMode = DebugMode.NONE):
+    time_step_index_count = 0
     clean_res_dir(problem.res_folder_path)
+    problem.create_output(problem.res_folder_path)
     _dx = problem.field.field_dimension
     _fk = problem.finite_element.face_basis_k.dimension
     _cl = problem.finite_element.cell_basis_l.dimension
@@ -384,6 +386,11 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
                 problem.create_quadrature_points_res_files(problem.res_folder_path, file_suffix, material)
                 problem.write_vertex_res_files(problem.res_folder_path, file_suffix, faces_unknown_vector)
                 problem.write_quadrature_points_res_files(problem.res_folder_path, file_suffix, material, faces_unknown_vector)
+                # problem.create_output(problem.res_folder_path)
+                problem.fill_quadrature_stress_output(problem.res_folder_path, "CAUCHY_STRESS", time_step_index_count, material)
+                problem.fill_quadrature_strain_output(problem.res_folder_path, "STRAIN", time_step_index_count, material)
+                # problem.close_output(problem.res_folder_path)
+                time_step_index_count += 1
                 faces_unknown_vector_previous_step = np.copy(faces_unknown_vector)
                 for element in problem.elements:
                     element.cell_unknown_vector_backup = np.copy(element.cell_unknown_vector)
