@@ -54,9 +54,9 @@ class TestMecha(TestCase):
         # mesh_file_path = "meshes/cook_quadrangles_1.msh"
         # mesh_file_path = "meshes/cook_quadrangles_0.msh"
         # mesh_file_path = "meshes/cook_20_quadrangles_structured.msh"
-        # mesh_file_path = "meshes/cook_01_quadrangles_structured.msh"
+        mesh_file_path = "meshes/cook_01_quadrangles_structured.msh"
         # mesh_file_path = "meshes/cook_10_triangles_structured.msh"
-        mesh_file_path = "meshes/cook_16_triangles_structured.msh"
+        # mesh_file_path = "meshes/cook_16_triangles_structured.msh"
 
         # --- FIELD
         displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN)
