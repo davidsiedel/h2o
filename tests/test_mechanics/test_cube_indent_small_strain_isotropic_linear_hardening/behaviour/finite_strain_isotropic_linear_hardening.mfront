@@ -26,7 +26,7 @@ p.setGlossaryName("EquivalentPlasticStrain");
 //nu.setGlossaryName("PoissonRatio");
 //@Parameter H     =  10.e9;
 //H.setEntryName("HardeningSlope");
-//@Parameter s0    = 300.e6;
+//@Parameter s0    = 900.e6;
 //s0.setGlossaryName("YieldStress");
 
 @Parameter young =  200.e9;
@@ -34,7 +34,7 @@ young.setGlossaryName("YoungModulus");
 @Parameter nu    =   0.3;
 nu.setGlossaryName("PoissonRatio");
 //@Parameter H     =  192.2e9;
-@Parameter H     =  92.2e9;
+@Parameter H     =  50e9;
 H.setEntryName("HardeningSlope");
 @Parameter s0    = 150.e6;
 s0.setGlossaryName("YieldStress");

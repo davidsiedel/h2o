@@ -18,7 +18,7 @@ class TestMecha(TestCase):
         # --- VALUES
         P_min = 0.
         P_max = 350e6
-        time_steps = np.linspace(P_min, P_max, 25)
+        time_steps = np.linspace(P_min, P_max, 50)
         print(time_steps)
         iterations = 10
 
@@ -44,7 +44,7 @@ class TestMecha(TestCase):
 
         # --- MESH
         # mesh_file_path = "meshes/cube_indent.msh"
-        mesh_file_path = "meshes/maillage_grossier.msh"
+        mesh_file_path = "meshes/cube_gro_tetra.msh"
         #mesh_file_path = "meshes/cube_test.msh"
         # mesh_file_path = "meshes/try_0.msh"
         #mesh_file_path = "meshes/cube_maillage_triangulaire_grossier.msh"
@@ -74,7 +74,7 @@ class TestMecha(TestCase):
         )
 
         # --- MATERIAL
-        parameters = {"YoungModulus": 206.e9, "PoissonRatio": 0.29, "HardeningSlope": 10.0e9, "YieldStress": 300.0e6}
+        parameters = {"YoungModulus": 200.e9, "PoissonRatio": 0.3, "HardeningSlope": 50e9, "YieldStress": 150.0e6}
         # stabilization_parameter = 1000. * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         stabilization_parameter = 0.01 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         # stabilization_parameter = 1.0 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
