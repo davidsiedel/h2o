@@ -14,12 +14,12 @@ from h2o.problem.resolution.exact import solve_newton_exact
 
 
 class TestMecha(TestCase):
-    def test_barre_2D_small_strain_linear_elasticity(self):
+    def test_barre_2D_finite_strain_linear_voce_hardening(self):
         # --- VALUES
         u_min = 0.0
-        u_max = 0.005
-        time_steps = np.linspace(u_min, u_max, 9)
-        iterations = 100
+        u_max = 0.01
+        time_steps = np.linspace(u_min, u_max, 100)
+        iterations = 10
 
         # --- LOAD
         def volumetric_load(time: float, position: ndarray):
@@ -38,6 +38,7 @@ class TestMecha(TestCase):
             BoundaryCondition("left", fixed, BoundaryType.DISPLACEMENT, 0),
             BoundaryCondition("bottom", fixed, BoundaryType.DISPLACEMENT, 1),
             BoundaryCondition("top", pull, BoundaryType.DISPLACEMENT, 1),
+            BoundaryCondition("top", fixed, BoundaryType.DISPLACEMENT, 0),
         ]
 
         # --- MESH
@@ -72,11 +73,11 @@ class TestMecha(TestCase):
         )
 
         # --- MATERIAL
-        parameters = {"YoungModulus": 206.9e3, "PoissonRatio": 0.29}
-        stabilization_parameter = parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        parameters = {"YoungModulus": 206.9e9, "PoissonRatio": 0.29}
+        stabilization_parameter = 1.e-2 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         mat = Material(
             nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
-            library_path="behaviour/src/libBehaviour.dylib",
+            library_path="behaviour/src/libBehaviour.so",
             library_name="Voce",
             hypothesis=mgis_bv.Hypothesis.PLANESTRAIN,
             stabilization_parameter=stabilization_parameter,
@@ -89,7 +90,7 @@ class TestMecha(TestCase):
         solve_newton_2(p, mat, verbose=False, debug_mode=DebugMode.NONE)
         # solve_newton_exact(p, mat, verbose=False, debug_mode=DebugMode.NONE)
 
-        from pp.plot_ssna import plot_det_f
+        # from pp.plot_ssna import plot_det_f
 
         # plot_det_f(46, "res")
 
