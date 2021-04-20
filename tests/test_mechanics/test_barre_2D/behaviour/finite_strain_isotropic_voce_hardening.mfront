@@ -20,7 +20,7 @@
   },
   inelastic_flow : "Plastic" {
     criterion : "Mises",
-//    isotropic_hardening : "Voce" {R0 : 450, Rinf : 100.e6, b : 10}
+//    isotropic_hardening : "Voce" {R0 : 450e6, Rinf : 100.e6, b : 10}
     isotropic_hardening : "Voce" {R0 : 450.e6, Rinf : 715.e6, b : 16.93}
   }
 };
