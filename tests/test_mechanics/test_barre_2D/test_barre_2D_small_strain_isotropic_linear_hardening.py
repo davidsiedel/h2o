@@ -17,8 +17,9 @@ class TestMecha(TestCase):
     def test_barre_2D_finite_strain_linear_voce_hardening(self):
         # --- VALUES
         u_min = 0.0
-        u_max = 0.01
-        time_steps = np.linspace(u_min, u_max, 100)
+        u_max = 0.05
+        time_steps = np.linspace(u_min, u_max, 5)
+        print(time_steps)
         iterations = 10
 
         # --- LOAD
@@ -43,7 +44,7 @@ class TestMecha(TestCase):
 
         # --- MESH
         mesh_file_path = (
-            "meshes/regulier.msh"
+            "meshes/irregulier.msh"
 
         )
 
@@ -77,7 +78,7 @@ class TestMecha(TestCase):
         stabilization_parameter = 1.e-2 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         mat = Material(
             nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
-            library_path="behaviour/src/libBehaviour.so",
+            library_path="behaviour/src/libBehaviour.dylib",
             library_name="Voce",
             hypothesis=mgis_bv.Hypothesis.PLANESTRAIN,
             stabilization_parameter=stabilization_parameter,
