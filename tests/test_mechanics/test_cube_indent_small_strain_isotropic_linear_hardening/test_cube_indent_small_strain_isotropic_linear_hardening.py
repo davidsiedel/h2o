@@ -18,7 +18,7 @@ class TestMecha(TestCase):
         # --- VALUES
         P_min = 0.
         P_max = 350e6
-        time_steps = np.linspace(P_min, P_max, 50)
+        time_steps = np.linspace(P_min, P_max,10)
         print(time_steps)
         iterations = 10
 
@@ -43,11 +43,10 @@ class TestMecha(TestCase):
         ]
 
         # --- MESH
-        # mesh_file_path = "meshes/cube_indent.msh"
-        mesh_file_path = "meshes/cube_gro_tetra.msh"
-        #mesh_file_path = "meshes/cube_test.msh"
-        # mesh_file_path = "meshes/try_0.msh"
-        #mesh_file_path = "meshes/cube_maillage_triangulaire_grossier.msh"
+
+        #mesh_file_path = "meshes/cube_gro_tetra.msh"
+
+        mesh_file_path = "meshes/cube_maillage_fin_t.msh"
         # --- FIELD
         displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN)
 
@@ -93,7 +92,7 @@ class TestMecha(TestCase):
         solve_newton_2(p, mat, verbose=False, debug_mode=DebugMode.NONE)
         # solve_newton_exact(p, mat, verbose=False, debug_mode=DebugMode.NONE)
 
-        from pp.plot_ssna import plot_det_f
+        # from pp.plot_ssna import plot_det_f
 
         # plot_det_f(46, "res")
 

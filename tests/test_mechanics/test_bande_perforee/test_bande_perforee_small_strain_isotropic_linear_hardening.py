@@ -18,8 +18,8 @@ class TestMecha(TestCase):
         # --- VALUES
         u_min = 0.0
         u_max = 0.005
-        time_steps = np.linspace(u_min, u_max, 9)
-        iterations = 100
+        time_steps = np.linspace(u_min, u_max, 10)
+        iterations = 10
 
         # --- LOAD
         def volumetric_load(time: float, position: ndarray):
@@ -35,14 +35,14 @@ class TestMecha(TestCase):
             return 0.0
 
         boundary_conditions = [
-            BoundaryCondition("top", pull, BoundaryType.DISPLACEMENT, 0),
-            BoundaryCondition("bottom", fixed, BoundaryType.DISPLACEMENT, 0),
-            BoundaryCondition("left", fixed, BoundaryType.DISPLACEMENT, 1),
+            BoundaryCondition("top", pull, BoundaryType.DISPLACEMENT, 1),
+            BoundaryCondition("bottom", fixed, BoundaryType.DISPLACEMENT, 1),
+            BoundaryCondition("left", fixed, BoundaryType.DISPLACEMENT, 0),
         ]
 
         # --- MESH
         mesh_file_path = (
-             "meshes/bande.msh"
+             "meshes/bande_maillage_fin.msh"
 
         )
 
@@ -73,7 +73,7 @@ class TestMecha(TestCase):
 
         # --- MATERIAL
         parameters = {"YoungModulus": 70.0e6, "PoissonRatio": 0.3}
-        stabilization_parameter = parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        stabilization_parameter = 0.001*parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         mat = Material(
             nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
             library_path="behaviour/src/libBehaviour.dylib",
@@ -90,28 +90,28 @@ class TestMecha(TestCase):
         # solve_newton_exact(p, mat, verbose=False)
 
         # --- POST PROCESSING
-        from pp.plot_data import plot_data
-
-        mtest_file_path = "mtest/small_strain_linear_elasticity.res"
-        hho_res_dir_path = "res"
-        number_of_time_steps = len(time_steps)
-        m_x_inedx = 1
-        m_y_index = 5
-        d_x_inedx = 4
-        d_y_inedx = 8
-        plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)
-        m_x_inedx = 1
-        m_y_index = 6
-        d_x_inedx = 4
-        d_y_inedx = 9
-        plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)
-        m_x_inedx = 1
-        m_y_index = 7
-        d_x_inedx = 4
-        d_y_inedx = 10
-        plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)
-        m_x_inedx = 1
-        m_y_index = 8
-        d_x_inedx = 4
-        d_y_inedx = 11
-        plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)
+        # from pp.plot_data import plot_data
+        #
+        # mtest_file_path = "mtest/small_strain_linear_elasticity.res"
+        # hho_res_dir_path = "res"
+        # number_of_time_steps = len(time_steps)
+        # m_x_inedx = 1
+        # m_y_index = 5
+        # d_x_inedx = 4
+        # d_y_inedx = 8
+        # plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)
+        # m_x_inedx = 1
+        # m_y_index = 6
+        # d_x_inedx = 4
+        # d_y_inedx = 9
+        # plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)
+        # m_x_inedx = 1
+        # m_y_index = 7
+        # d_x_inedx = 4
+        # d_y_inedx = 10
+        # plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)
+        # m_x_inedx = 1
+        # m_y_index = 8
+        # d_x_inedx = 4
+        # d_y_inedx = 11
+        # plot_data(mtest_file_path, hho_res_dir_path, number_of_time_steps, m_x_inedx, m_y_index, d_x_inedx, d_y_inedx)

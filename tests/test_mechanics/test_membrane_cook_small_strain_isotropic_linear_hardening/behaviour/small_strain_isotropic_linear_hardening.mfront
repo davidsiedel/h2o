@@ -29,15 +29,16 @@ p.setGlossaryName("EquivalentPlasticStrain");
 //@Parameter s0    = 300.e6;
 //s0.setGlossaryName("YieldStress");
 
-@Parameter young =  70.e6;
+@Parameter young =  70e6;
 young.setGlossaryName("YoungModulus");
-@Parameter nu    =   0.3;
+@Parameter nu    =   0.4999;
 nu.setGlossaryName("PoissonRatio");
-//@Parameter H     =  10e;
-@Parameter H     =  10e6;
+//@Parameter H     =  192.2e9;
+@Parameter H     =  0.135e6;
 H.setEntryName("HardeningSlope");
-@Parameter s0    = 0.8e6;
+@Parameter s0    = 0.243e6;
 s0.setGlossaryName("YieldStress");
+
 /*!
  * computation of the prediction operator: we only provide the elastic
  * operator.
