@@ -44,9 +44,14 @@ class TestMecha(TestCase):
 
         # --- MESH
 
-        #mesh_file_path = "meshes/cube_gro_tetra.msh"
-
-        mesh_file_path = "meshes/cube_maillage_fin_t.msh"
+        #mesh_file_path = "meshes/cube_150elem_tetra.msh" #150 elements ok
+        #mesh_file_path = "meshes/cube_maillage_tetra_4399.msh" #4399 elements passe pas
+        # mesh_file_path = "meshes/cube_maillage_1973.msh" #1973 elements passe pas
+        #mesh_file_path = "meshes/cube_maillage_tetra_258.msh" #258 elements ok
+        mesh_file_path = "meshes/cube_maillage_tetra_559.msh"  # 559 elements ok
+        #mesh_file_path = "meshes/cube_maillage_762.msh"  # 762 elements ok
+        #mesh_file_path = "meshes/cube_maillage_tetra_1427.msh"  # 1427 elements ok
+        #mesh_file_path = "meshes/a.msh"  # 1427 elements ok
         # --- FIELD
         displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN)
 
