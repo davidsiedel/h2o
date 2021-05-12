@@ -5,6 +5,7 @@ import h2o.geometry.shapes.shape_polygon as ipolygon
 import h2o.geometry.shapes.shape_tetrahedron as itetrahedron
 import h2o.geometry.shapes.shape_hexahedron as ihexahedron
 import h2o.geometry.shapes.shape_polyhedron as ipolyhedron
+from h2o.geometry.geometry import get_shape_bounding_box
 from h2o.h2o import *
 
 
@@ -167,6 +168,7 @@ def get_quadrature_size(
         return itriangle.get_triangle_quadrature_size(integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.QUADRANGLE:
         return iquadrangle.get_quadrangle_quadrature_size(integration_order, quadrature_type=quadrature_type)
+        # return ipolygon.get_polygon_quadrature_size(vertices, integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.POLYGON:
         return ipolygon.get_polygon_quadrature_size(vertices, integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.TETRAHEDRON:
@@ -208,6 +210,7 @@ def get_quadrature_points(
         return iquadrangle.get_quadrangle_quadrature_points(
             vertices, integration_order, quadrature_type=quadrature_type
         )
+        # return ipolygon.get_polygon_quadrature_points(vertices, integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.POLYGON:
         return ipolygon.get_polygon_quadrature_points(vertices, integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.TETRAHEDRON:
@@ -253,6 +256,7 @@ def get_quadrature_weights(
         return iquadrangle.get_quadrangle_quadrature_weights(
             vertices, integration_order, quadrature_type=quadrature_type
         )
+        # return ipolygon.get_polygon_quadrature_weights(vertices, integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.POLYGON:
         return ipolygon.get_polygon_quadrature_weights(vertices, integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.TETRAHEDRON:
@@ -289,6 +293,15 @@ class Shape:
         self.vertices = shape_vertices
         self.connectivity = connectivity
 
+    def get_bounding_box(self) -> ndarray:
+        return get_shape_bounding_box(self.vertices)
+
+
+    def get_face_bounding_box(self) -> ndarray:
+        rot = self.get_rotation_matrix()
+        proj_v = (rot @ self.vertices)[:-1,:]
+        return get_shape_bounding_box(proj_v)
+
     def get_centroid(self) -> ndarray:
         """
 
@@ -320,6 +333,7 @@ class Shape:
 
         """
         return get_rotation_matrix(self.type, self.vertices)
+        # return -get_rotation_matrix(self.type, self.vertices)
 
     def get_quadrature_size(
         self, integration_order: int, quadrature_type: QuadratureType = QuadratureType.GAUSS
