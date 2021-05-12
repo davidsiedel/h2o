@@ -31,7 +31,7 @@ p.setGlossaryName("EquivalentPlasticStrain");
 
 @Parameter young =  70.e6;
 young.setGlossaryName("YoungModulus");
-@Parameter nu    =   0.3;
+@Parameter nu    =   0.4999;
 nu.setGlossaryName("PoissonRatio");
 //@Parameter H     =  10e;
 @Parameter H     =  10e6;

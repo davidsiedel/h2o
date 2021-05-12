@@ -23,7 +23,7 @@ class TestMecha(TestCase):
         # afin de définir N pas de temps uniformément répartis entre u_min et u_max, avec N le nombre de pas de temps.
 
         u_min = 0.0
-        u_max = 0.005
+        u_max = 0.0013
         time_steps = np.linspace(u_min, u_max, 10)
         iterations = 10
 
@@ -58,9 +58,10 @@ class TestMecha(TestCase):
 
         # --- MESH
         # on introduit le maillage préalablement fait sur gmsh.
-        mesh_file_path = ("meshes/bande_2_bas_carre.msh"  )
-
-
+        #mesh_file_path = ("meshes/bande_2_bas_carre.msh"  )
+        #mesh_file_path = ("meshes/bande_bas_carre.msh")
+        #mesh_file_path = ("meshes/bande_triangulaire_gros.msh")
+        mesh_file_path = ("meshes/bande_maillage_fin.msh")
         # --- FIELD
         # definition du type de deplacement
         displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_SMALL_STRAIN_PLANE_STRAIN)
@@ -78,8 +79,8 @@ class TestMecha(TestCase):
 
 
         # --- MATERIAL----introduction des données matériau
-        parameters = {"YoungModulus": 70.0e6, "PoissonRatio": 0.3}
-        stabilization_parameter = 0.001*parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        parameters = {"YoungModulus": 70e6, "PoissonRatio": 0.4999}
+        stabilization_parameter = 1 *parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         mat = Material(nq=p.mesh.number_of_cell_quadrature_points_in_mesh,library_path="behaviour/src/libBehaviour.dylib",
             library_name="SmallStrainIsotropicLinearHardeningPlasticity",hypothesis=mgis_bv.Hypothesis.PLANESTRAIN,
             stabilization_parameter=stabilization_parameter,lagrange_parameter=parameters["YoungModulus"],field=displacement,parameters=None)

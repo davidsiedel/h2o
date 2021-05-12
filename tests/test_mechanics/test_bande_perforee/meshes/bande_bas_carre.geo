@@ -64,7 +64,12 @@ Line(14) = {1, 11};
 //+
 Line(15) = {12, 4};
 //+
-
+//+
+Physical Curve("top", 16) = {6, 5};
+//+
+Physical Curve("bottom", 17) = {2};
+//+
+Physical Curve("left", 18) = {7, 8, 14};
 
 Curve Loop(1) = {6, 7, 9, -11};
 //+
@@ -95,14 +100,14 @@ Transfinite Surface {3} = {8, 9, 2, 1};
 Transfinite Surface {4} = {9, 4, 3, 2};
 
 //+
-Transfinite Curve {15, 12, 8} = 10 Using Progression 1;
+Transfinite Curve {15, 12, 8} = 8 Using Progression 1;
 //+
-Transfinite Curve {4, 11, 7} = 10 Using Progression 1;
+Transfinite Curve {4, 11, 7} = 8 Using Progression 1;
 //+
-Transfinite Curve {14, 13, 3} = 20 Using Progression 1;
+Transfinite Curve {14, 13, 3} = 16 Using Progression 1;
 //+
-Transfinite Curve {2, 10, 5} = 10 Using Progression 1;
+Transfinite Curve {2, 10, 5} = 8 Using Progression 1;
 //+
-Transfinite Curve {6, 9, 1} = 10 Using Progression 1;
+Transfinite Curve {6, 9, 1} = 8 Using Progression 1;
 //+
 Recombine Surface {1, 2, 4, 3};
