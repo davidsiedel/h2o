@@ -1,5 +1,3 @@
-// Gmsh project created on Tue May 11 14:03:14 2021
-SetFactory("OpenCASCADE");
 //+
 Point(1) = {0, 0, 0, 1.0};
 //+
@@ -29,7 +27,7 @@ Curve Loop(1) = {2, 3, 4, 1};
 //+
 Plane Surface(1) = {1};
 //+
-Transfinite Curve {2, 1, 4, 3} = 5 Using Progression 1;
+Transfinite Curve {2, 1, 4, 3} = 10 Using Progression 1;
 //+
 Transfinite Surface {1};
 //+

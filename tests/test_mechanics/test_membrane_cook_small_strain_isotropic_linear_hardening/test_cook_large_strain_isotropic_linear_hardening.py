@@ -24,7 +24,7 @@ class TestMecha(TestCase):
 
         F_min= 0
         F_max= 5000000/0.016 # 1.8 newton/0.016 m2 (Pascal)
-        time_steps = np.linspace(F_min, F_max, 50)
+        time_steps = np.linspace(F_min, F_max, 25)
         iterations = 10
 
         # --- LOAD
@@ -56,7 +56,7 @@ class TestMecha(TestCase):
         # --- FINITE ELEMENT
         finite_element = FiniteElement(
             element_type=ElementType.HDG_EQUAL,
-            polynomial_order=1,
+            polynomial_order=3,
             euclidean_dimension=displacement.euclidean_dimension,
             basis_type=BasisType.MONOMIAL,
         )
