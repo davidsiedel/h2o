@@ -47,7 +47,10 @@ class FiniteElement:
         self.cell_basis_r = Basis(self.r_order, euclidean_dimension, basis_type=basis_type)
         self.face_basis_k = Basis(self.k_order, euclidean_dimension - 1, basis_type=basis_type)
         # --- INTEGRATION ORDERS
-        self.construction_integration_order = 2 * (polynomial_order + 1)
+        if debug_mode == DebugMode.LIGHT:
+            self.construction_integration_order = 2 * (polynomial_order + 1)
+        else:
+            self.construction_integration_order = 2 * (polynomial_order + 1)
         self.computation_integration_order = 2 * (polynomial_order + 1)
-        # self.construction_integration_order = 2 * (polynomial_order)
+        # self.computation_integration_order = 2 * (polynomial_order)
         # self.computation_integration_order = 2 * (polynomial_order)

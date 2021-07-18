@@ -26,10 +26,15 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
     residual_values = []
     time_step_temp = problem.time_steps[0]
     initial_time_steps = [ff for ff in problem.time_steps]
-    for time_step_index, time_step in enumerate(problem.time_steps):
-        local_time_steps = [time_step]
-        for local_time_step_index, local_time_step in enumerate(local_time_steps):
-            print("0K")
+    _STAB_PARAM_FINAL = 1.0
+    _STAB_PARAM_FACTOR = 1.0
+    time_step_index = 0
+    while time_step_index < len(problem.time_steps):
+        time_step = problem.time_steps[time_step_index]
+    # for time_step_index, time_step in enumerate(problem.time_steps):
+    #     local_time_steps = [time_step]
+        # for local_time_step_index, local_time_step in enumerate(local_time_steps):
+        #     print("0K")
         # --- SET TEMPERATURE
         material.set_temperature()
         # --- PRINT DATA
@@ -41,6 +46,7 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
         # problem.create_vertex_res_files(problem.res_folder_path, file_suffix)
         # problem.create_quadrature_points_res_files(problem.res_folder_path, file_suffix, material)
         for iteration in range(problem.number_of_iterations):
+            _MIN_EIGVALS = np.inf
             # --------------------------------------------------------------------------------------------------
             # SET SYSTEM MATRIX AND VECTOR
             # --------------------------------------------------------------------------------------------------
@@ -63,17 +69,27 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
             stab_coef = 1.0
             iter_face_constraint = 0
             for _element_index, element in enumerate(problem.elements):
+                # cell_quadrature_size = element.cell.get_quadrature_size(
+                #     problem.finite_element.construction_integration_order, quadrature_type=problem.quadrature_type
+                # )
+                # cell_quadrature_points = element.cell.get_quadrature_points(
+                #     problem.finite_element.construction_integration_order, quadrature_type=problem.quadrature_type
+                # )
+                # cell_quadrature_weights = element.cell.get_quadrature_weights(
+                #     problem.finite_element.construction_integration_order, quadrature_type=problem.quadrature_type
+                # )
                 cell_quadrature_size = element.cell.get_quadrature_size(
-                    problem.finite_element.construction_integration_order, quadrature_type=problem.quadrature_type
+                    problem.finite_element.computation_integration_order, quadrature_type=problem.quadrature_type
                 )
                 cell_quadrature_points = element.cell.get_quadrature_points(
-                    problem.finite_element.construction_integration_order, quadrature_type=problem.quadrature_type
+                    problem.finite_element.computation_integration_order, quadrature_type=problem.quadrature_type
                 )
                 cell_quadrature_weights = element.cell.get_quadrature_weights(
-                    problem.finite_element.construction_integration_order, quadrature_type=problem.quadrature_type
+                    problem.finite_element.computation_integration_order, quadrature_type=problem.quadrature_type
                 )
                 x_c = element.cell.get_centroid()
                 h_c = element.cell.get_diameter()
+                bdc = element.cell.get_bounding_box()
                 _nf = len(element.faces)
                 _c0_c = _dx * _cl
                 # --- INITIALIZE MATRIX AND VECTORS
@@ -90,15 +106,32 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
                     material.mat_data.s1.gradients[_qp] = transformation_gradient
                     # --- INTEGRATE BEHAVIOUR LAW
                     integ_res = mgis_bv.integrate(material.mat_data, material.integration_type, _dt, _qp, (_qp + 1))
+                    if integ_res != 1:
+                        print("INTEG RES : {} @ QUAD POINT {}".format(integ_res, _qp))
                     # stored_energies', 'dissipated_energies', 'internal_state_variables
                     # print(material.mat_data.s1.internal_state_variables)
                     # --- VOLUMETRIC FORCES
-                    v = problem.finite_element.cell_basis_l.evaluate_function(_x_q_c, x_c, h_c)
+                    # v = problem.finite_element.cell_basis_l.evaluate_function(_x_q_c, x_c, h_c)
+                    v = problem.finite_element.cell_basis_l.evaluate_function(_x_q_c, x_c, bdc)
                     for load in problem.loads:
                         vl = _w_q_c * v * load.function(time_step, _x_q_c)
                         _re0 = load.direction * _cl
                         _re1 = (load.direction + 1) * _cl
                         element_external_forces[_re0:_re1] += vl
+                    # --- UPDATE STAB PARAM
+                    if False:
+                        eig_vals, _ = np.linalg.eig(material.mat_data.K[_qp])
+                        local_factor = np.min(eig_vals)/material.stabilization_parameter
+                        if debug_mode == DebugMode.LIGHT:
+                            print("K : \n{}".format(material.mat_data.K[_qp]))
+                            print("min eig : \n{:.6E}".format(np.min(eig_vals)))
+                            print("max eig : \n{:.6E}".format(np.max(eig_vals)))
+                            print("2 mu : \n{:.6E}".format(material.stabilization_parameter))
+                            print("local_factor : {}".format(local_factor))
+                        if local_factor > _STAB_PARAM_FACTOR:
+                            _STAB_PARAM_FACTOR = local_factor
+                        if np.min(eig_vals) < _MIN_EIGVALS:
+                            _MIN_EIGVALS = np.min(eig_vals)
                     # --- COMPUTE STIFFNESS MATRIX CONTRIBUTION AT QUADRATURE POINT
                     element_stiffness_matrix += _w_q_c * (
                         element.gradients_operators[_qc].T @ material.mat_data.K[_qp] @ element.gradients_operators[_qc]
@@ -122,6 +155,7 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
                     )
                 # --- STAB PARAMETER CHANGE
                 stab_param = stab_coef * material.stabilization_parameter
+                # stab_param = _STAB_PARAM_FINAL * material.stabilization_parameter
                 # --- ADDING STABILIZATION CONTRIBUTION AT THE ELEMENT LEVEL
                 element_stiffness_matrix += stab_param * element.stabilization_operator
                 # element_stiffness_matrix -= stab_param * element.stabilization_operator
@@ -202,17 +236,30 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
                                 face = element.faces[f_local]
                                 x_f = face.get_centroid()
                                 h_f = face.get_diameter()
+                                bdf = face.get_bounding_box()
                                 face_rot = face.get_rotation_matrix()
+                                # face_quadrature_size = face.get_quadrature_size(
+                                #     problem.finite_element.construction_integration_order,
+                                #     quadrature_type=problem.quadrature_type,
+                                # )
+                                # face_quadrature_points = face.get_quadrature_points(
+                                #     problem.finite_element.construction_integration_order,
+                                #     quadrature_type=problem.quadrature_type,
+                                # )
+                                # face_quadrature_weights = face.get_quadrature_weights(
+                                #     problem.finite_element.construction_integration_order,
+                                #     quadrature_type=problem.quadrature_type,
+                                # )
                                 face_quadrature_size = face.get_quadrature_size(
-                                    problem.finite_element.construction_integration_order,
+                                    problem.finite_element.computation_integration_order,
                                     quadrature_type=problem.quadrature_type,
                                 )
                                 face_quadrature_points = face.get_quadrature_points(
-                                    problem.finite_element.construction_integration_order,
+                                    problem.finite_element.computation_integration_order,
                                     quadrature_type=problem.quadrature_type,
                                 )
                                 face_quadrature_weights = face.get_quadrature_weights(
-                                    problem.finite_element.construction_integration_order,
+                                    problem.finite_element.computation_integration_order,
                                     quadrature_type=problem.quadrature_type,
                                 )
                                 for _qf in range(face_quadrature_size):
@@ -222,12 +269,15 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
                                     _w_q_f = face_quadrature_weights[_qf]
                                     _s_q_f = (face_rot @ _x_q_f)[:-1]
                                     _s_f = (face_rot @ x_f)[:-1]
+                                    bdf_proj = (face_rot @ bdf)[:-1]
+                                    bdf_proj = face.get_face_bounding_box()
                                     # v = problem.finite_element.face_basis_k.evaluate_function(
                                     #     _x_q_f,
                                     #     element.faces[f_local].shape.centroid,
                                     #     element.faces[f_local].shape.diameter,
                                     # )
-                                    v = problem.finite_element.face_basis_k.evaluate_function(_s_q_f, _s_f, h_f)
+                                    # v = problem.finite_element.face_basis_k.evaluate_function(_s_q_f, _s_f, h_f)
+                                    v = problem.finite_element.face_basis_k.evaluate_function(_s_q_f, _s_f, bdf_proj)
                                     _v_face_imposed_displacement += (
                                         _w_q_f * v * boundary_condition.function(time_step, _x_q_f)
                                     )
@@ -238,7 +288,8 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
                                     #     _x_q_f,
                                     #     _w_q_f,
                                     # )
-                                    _psi_k = problem.finite_element.face_basis_k.evaluate_function(_s_q_f, _s_f, h_f)
+                                    # _psi_k = problem.finite_element.face_basis_k.evaluate_function(_s_q_f, _s_f, h_f)
+                                    _psi_k = problem.finite_element.face_basis_k.evaluate_function(_s_q_f, _s_f, bdf_proj)
                                     _m_psi_psi_face += _w_q_f * np.tensordot(_psi_k, _psi_k, axes=0)
                                 _m_psi_psi_face_inv = np.linalg.inv(_m_psi_psi_face)
                                 if debug_mode == 0:
@@ -274,17 +325,30 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
                                 face = element.faces[f_local]
                                 x_f = face.get_centroid()
                                 h_f = face.get_diameter()
+                                bdf = face.get_bounding_box()
                                 face_rot = face.get_rotation_matrix()
+                                # face_quadrature_size = face.get_quadrature_size(
+                                #     problem.finite_element.construction_integration_order,
+                                #     quadrature_type=problem.quadrature_type,
+                                # )
+                                # face_quadrature_points = face.get_quadrature_points(
+                                #     problem.finite_element.construction_integration_order,
+                                #     quadrature_type=problem.quadrature_type,
+                                # )
+                                # face_quadrature_weights = face.get_quadrature_weights(
+                                #     problem.finite_element.construction_integration_order,
+                                #     quadrature_type=problem.quadrature_type,
+                                # )
                                 face_quadrature_size = face.get_quadrature_size(
-                                    problem.finite_element.construction_integration_order,
+                                    problem.finite_element.computation_integration_order,
                                     quadrature_type=problem.quadrature_type,
                                 )
                                 face_quadrature_points = face.get_quadrature_points(
-                                    problem.finite_element.construction_integration_order,
+                                    problem.finite_element.computation_integration_order,
                                     quadrature_type=problem.quadrature_type,
                                 )
                                 face_quadrature_weights = face.get_quadrature_weights(
-                                    problem.finite_element.construction_integration_order,
+                                    problem.finite_element.computation_integration_order,
                                     quadrature_type=problem.quadrature_type,
                                 )
                                 for _qf in range(face_quadrature_size):
@@ -294,6 +358,8 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
                                     _w_q_f = face_quadrature_weights[_qf]
                                     _s_q_f = (face_rot @ _x_q_f)[:-1]
                                     _s_f = (face_rot @ x_f)[:-1]
+                                    bdf_proj = (face_rot @ bdf)[:-1]
+                                    bdf_proj = face.get_face_bounding_box()
                                     # for qf in range(len(element.faces[f_local].quadrature_weights)):
                                     #     # _h_f = element.faces[f_local].shape.diameter
                                     #     # _x_f = element.faces[f_local].shape.centroid
@@ -306,7 +372,8 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
                                     #     element.faces[f_local].shape.centroid,
                                     #     element.faces[f_local].shape.diameter,
                                     # )
-                                    v = problem.finite_element.face_basis_k.evaluate_function(_s_q_f, _s_f, h_f)
+                                    # v = problem.finite_element.face_basis_k.evaluate_function(_s_q_f, _s_f, h_f)
+                                    v = problem.finite_element.face_basis_k.evaluate_function(_s_q_f, _s_f, bdf_proj)
                                     # _x_q_f = element.faces[f_local].quadrature_points[:, qf]
                                     # _w_q_f = element.faces[f_local].quadrature_weights[qf]
                                     # v = problem.finite_element.face_basis_k.evaluate_function(
@@ -368,10 +435,12 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
             # --------------------------------------------------------------------------------------------------
             # RESIDUAL EVALUATION
             # --------------------------------------------------------------------------------------------------
+            _STAB_PARAM_FINAL = _STAB_PARAM_FACTOR
+            # print("STAB FACTOR : {:.6E} | MIN EIGVALS : {:.6E}".format(_STAB_PARAM_FINAL, _MIN_EIGVALS))
             if external_forces_coefficient == 0.0:
                 external_forces_coefficient = 1.0
             residual_evaluation = np.max(np.abs(residual)) / external_forces_coefficient
-            print("ITER : {} | RES_MAX : {}".format(str(iteration).zfill(4), residual_evaluation))
+            print("ITER : {} | RES_MAX : {:.6E} | STAB FACTOR : {:.6E} | MIN EIGVALS : {:.6E}".format(str(iteration).zfill(4), residual_evaluation, _STAB_PARAM_FINAL, _MIN_EIGVALS))
             # print("ITER : {} | =====================================================================".format(str(iteration).zfill(4)))
             # residual_values.append(residual_evaluation)
             # if residual_evaluation < problem.tolerance:
@@ -396,6 +465,7 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
                     element.cell_unknown_vector_backup = np.copy(element.cell_unknown_vector)
                 residual_values.append(residual_evaluation)
                 time_step_temp = time_step + 0.
+                time_step_index += 1
                 break
             elif iteration == problem.number_of_iterations - 1:
                 problem.time_steps.insert(time_step_index+1, (time_step + time_step_temp)/2.)
@@ -403,6 +473,7 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
                 for element in problem.elements:
                     # element.cell_unknown_vector = np.zeros((_cl * _dx,))
                     element.cell_unknown_vector = np.copy(element.cell_unknown_vector_backup)
+                time_step_index += 1
                 break
             else:
                 # ----------------------------------------------------------------------------------------------
@@ -451,14 +522,14 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
                     )
                     # --- ADDING CORRECTION TO CURRENT DISPLACEMENT
                     element.cell_unknown_vector += cell_correction
-    plt.plot(range(len(residual_values)), residual_values, label="residual")
-    plt.plot(
-        range(len(residual_values)), [problem.tolerance for local_i in range(len(residual_values))], label="tolerance"
-    )
-    plt.ylabel("resiudal after convergence")
-    plt.xlabel("time step index")
-    plt.title("evolution of the residual")
-    plt.legend()
-    plt.gcf().subplots_adjust(left=0.15)
-    plt.show()
+    # plt.plot(range(len(residual_values)), residual_values, label="residual")
+    # plt.plot(
+    #     range(len(residual_values)), [problem.tolerance for local_i in range(len(residual_values))], label="tolerance"
+    # )
+    # plt.ylabel("resiudal after convergence")
+    # plt.xlabel("time step index")
+    # plt.title("evolution of the residual")
+    # plt.legend()
+    # plt.gcf().subplots_adjust(left=0.15)
+    # plt.show()
     return

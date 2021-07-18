@@ -4,12 +4,14 @@ import numpy as np
 from numpy import ndarray
 import pathlib
 import shutil
+import time
 import os
 
 
 class DebugMode(Enum):
     NONE = auto()
     LIGHT = auto()
+    TWO = auto()
 
 
 class BoundaryType(Enum):
@@ -117,4 +119,4 @@ real = float
 # intg = np.uint8
 intg = int
 size_type = np.uint8
-# debug_mode = DebugMode.LIGHT
+debug_mode = DebugMode.NONE

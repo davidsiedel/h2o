@@ -4,6 +4,7 @@ from h2o.field.field import Field
 from h2o.fem.element.finite_element import FiniteElement
 import h2o.fem.element.operators.operator_gradient as gradop
 import h2o.fem.element.operators.operator_stabilization as stabop
+import h2o.fem.element.operators.operator_stabilization_hho as stabop_hho
 
 
 class Element:
@@ -48,8 +49,15 @@ class Element:
         # --- BUILD OPERATORS
         if finite_element.element_type in [ElementType.HDG_LOW, ElementType.HDG_EQUAL, ElementType.HDG_HIGH]:
             self.gradients_operators = gradop.get_gradient_operators(field, finite_element, cell, faces)
-            self.stabilization_operator = stabop.get_stabilization_operator(field, finite_element, cell, faces)
+            # self.stabilization_operator = stabop.get_stabilization_operator(field, finite_element, cell, faces)
+            # HDG AS IN DISK++
+            # self.stabilization_operator = stabop.get_stabilization_operator3(field, finite_element, cell, faces)
+            # ----------------
             # self.stabilization_operator = stabop.get_stab_test(field, finite_element, cell, faces)
+            # HHO AS IN DISK++ ??
+            # with monomial basis 2
+            self.stabilization_operator = stabop_hho.get_stabilization_operator3hho(field, finite_element, cell, faces)
+            # ----------------
         else:
             raise KeyError("NO")
         return
@@ -118,6 +126,8 @@ class Element:
         _c1 = (direction + 1) * _cl
         x_c = self.cell.get_centroid()
         h_c = self.cell.get_diameter()
-        vcl = self.finite_element.cell_basis_l.evaluate_function(point, x_c, h_c)
+        bdc = self.cell.get_bounding_box()
+        # vcl = self.finite_element.cell_basis_l.evaluate_function(point, x_c, h_c)
+        vcl = self.finite_element.cell_basis_l.evaluate_function(point, x_c, bdc)
         field_unknown_value = vcl @ element_unknown_vector[_c0:_c1]
         return field_unknown_value

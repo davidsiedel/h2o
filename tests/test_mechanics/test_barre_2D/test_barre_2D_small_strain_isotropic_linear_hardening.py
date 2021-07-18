@@ -14,11 +14,11 @@ from h2o.problem.resolution.exact import solve_newton_exact
 
 
 class TestMecha(TestCase):
-    def test_cube_indent_small_strain_isotropic_linear_hardening(self):
+    def test_barre_2D_finite_strain_linear_voce_hardening(self):
         # --- VALUES
-        P_min = 0.
-        P_max = 350e6
-        time_steps = np.linspace(P_min, P_max,10)
+        u_min = 0.0
+        u_max = 0.05
+        time_steps = np.linspace(u_min, u_max, 5)
         print(time_steps)
         iterations = 10
 
@@ -36,24 +36,20 @@ class TestMecha(TestCase):
             return 0.0
 
         boundary_conditions = [
-            BoundaryCondition("indent", pull, BoundaryType.PRESSURE, 2),
-            BoundaryCondition("bottom", fixed, BoundaryType.DISPLACEMENT, 0),
+            BoundaryCondition("left", fixed, BoundaryType.DISPLACEMENT, 0),
             BoundaryCondition("bottom", fixed, BoundaryType.DISPLACEMENT, 1),
-            BoundaryCondition("bottom", fixed, BoundaryType.DISPLACEMENT, 2),
+            BoundaryCondition("top", pull, BoundaryType.DISPLACEMENT, 1),
+            BoundaryCondition("top", fixed, BoundaryType.DISPLACEMENT, 0),
         ]
 
         # --- MESH
+        mesh_file_path = (
+            "meshes/irregulier.msh"
 
-        #mesh_file_path = "meshes/cube_150elem_tetra.msh" #150 elements ok
-        #mesh_file_path = "meshes/cube_maillage_tetra_4399.msh" #4399 elements passe pas
-        # mesh_file_path = "meshes/cube_maillage_1973.msh" #1973 elements passe pas
-        #mesh_file_path = "meshes/cube_maillage_tetra_258.msh" #258 elements ok
-        mesh_file_path = "meshes/cube_maillage_tetra_559.msh"  # 559 elements ok
-        #mesh_file_path = "meshes/cube_maillage_762.msh"  # 762 elements ok
-        #mesh_file_path = "meshes/cube_maillage_tetra_1427.msh"  # 1427 elements ok
-        #mesh_file_path = "meshes/a.msh"  # 1427 elements ok
+        )
+
         # --- FIELD
-        displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN)
+        displacement = Field(label="U", field_type=FieldType.DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN)
 
         # --- FINITE ELEMENT
         finite_element = FiniteElement(
@@ -73,20 +69,18 @@ class TestMecha(TestCase):
             boundary_conditions=boundary_conditions,
             loads=loads,
             quadrature_type=QuadratureType.GAUSS,
-            tolerance=1.0e-6,
+            tolerance=1.0e-4,
             res_folder_path=get_current_res_folder_path()
         )
 
         # --- MATERIAL
-        parameters = {"YoungModulus": 200.e9, "PoissonRatio": 0.3, "HardeningSlope": 50e9, "YieldStress": 150.0e6}
-        # stabilization_parameter = 1000. * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
-        stabilization_parameter = 0.01 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
-        # stabilization_parameter = 1.0 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
+        parameters = {"YoungModulus": 206.9e9, "PoissonRatio": 0.29}
+        stabilization_parameter = 1.e-2 * parameters["YoungModulus"] / (1.0 + parameters["PoissonRatio"])
         mat = Material(
             nq=p.mesh.number_of_cell_quadrature_points_in_mesh,
             library_path="behaviour/src/libBehaviour.dylib",
-            library_name="FiniteStrainIsotropicLinearHardeningPlasticity",
-            hypothesis=mgis_bv.Hypothesis.TRIDIMENSIONAL,
+            library_name="Voce",
+            hypothesis=mgis_bv.Hypothesis.PLANESTRAIN,
             stabilization_parameter=stabilization_parameter,
             lagrange_parameter=parameters["YoungModulus"],
             field=displacement,

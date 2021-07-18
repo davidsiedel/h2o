@@ -72,7 +72,8 @@ class Problem:
         self.finite_element = finite_element
         self.field = field
         self.mesh_file_path = mesh_file_path
-        self.mesh = Mesh(mesh_file_path=mesh_file_path, integration_order=finite_element.construction_integration_order)
+        # self.mesh = Mesh(mesh_file_path=mesh_file_path, integration_order=finite_element.construction_integration_order)
+        self.mesh = Mesh(mesh_file_path=mesh_file_path, integration_order=finite_element.computation_integration_order)
         self.__check_loads(loads)
         self.__check_boundary_conditions(boundary_conditions)
         self.boundary_conditions = boundary_conditions
@@ -121,10 +122,12 @@ class Problem:
             q_count = self.mesh.number_of_vertices_in_mesh
             for element in self.elements:
                 cell_quadrature_size = element.cell.get_quadrature_size(
-                    element.finite_element.construction_integration_order
+                    # element.finite_element.construction_integration_order
+                    element.finite_element.computation_integration_order
                 )
                 cell_quadrature_points = element.cell.get_quadrature_points(
-                    element.finite_element.construction_integration_order
+                    # element.finite_element.construction_integration_order
+                    element.finite_element.computation_integration_order
                 )
                 for qc in range(cell_quadrature_size):
                     x_q_c = cell_quadrature_points[:, qc]
@@ -143,10 +146,12 @@ class Problem:
             # q_count = self.mesh.number_of_vertices_in_mesh
             for element in self.elements:
                 cell_quadrature_size = element.cell.get_quadrature_size(
-                    element.finite_element.construction_integration_order
+                    # element.finite_element.construction_integration_order
+                    element.finite_element.computation_integration_order
                 )
                 cell_quadrature_points = element.cell.get_quadrature_points(
-                    element.finite_element.construction_integration_order
+                    # element.finite_element.construction_integration_order
+                    element.finite_element.computation_integration_order
                 )
                 for qc in range(cell_quadrature_size):
                     x_q_c = cell_quadrature_points[:, qc]
@@ -393,7 +398,7 @@ class Problem:
             res_output_file.write("$EndNodeData\n")
 
     def close_output(self, res_folder_path: str):
-        res_file_path = os.path.join(res_folder_path, "output.msh")
+        res_file_path = os.path.join(res_folder_path, "output0.msh")
         with open(res_file_path, "a") as res_output_file:
             res_output_file.write("$EndNodeData\n")
 
@@ -512,13 +517,16 @@ class Problem:
             qp = 0
             for element in self.elements:
                 cell_quadrature_size = element.cell.get_quadrature_size(
-                    element.finite_element.construction_integration_order
+                    # element.finite_element.construction_integration_order
+                    element.finite_element.computation_integration_order
                 )
                 cell_quadrature_points = element.cell.get_quadrature_points(
-                    element.finite_element.construction_integration_order
+                    # element.finite_element.construction_integration_order
+                    element.finite_element.computation_integration_order
                 )
                 cell_quadrature_weights = element.cell.get_quadrature_weights(
-                    element.finite_element.construction_integration_order
+                    # element.finite_element.construction_integration_order
+                    element.finite_element.computation_integration_order
                 )
                 for qc in range(cell_quadrature_size):
                     x_q_c = cell_quadrature_points[:, qc]
@@ -639,6 +647,7 @@ class Problem:
         Returns:
 
         """
+        mean_time = 0.
         elements = []
         _fk = self.finite_element.face_basis_k.dimension
         _dx = self.field.field_dimension
@@ -665,6 +674,7 @@ class Problem:
                 element_faces.append(face)
             # print(cell_index)
             # print(cell_vertices)
+            startime = time.time()
             element = Element(
                 self.field,
                 self.finite_element,
@@ -672,9 +682,13 @@ class Problem:
                 element_faces,
                 element_faces_indices,
             )
+            endtime = time.time()
+            mean_time += endtime - startime
             elements.append(element)
             del element_cell
             del element_faces
+        mean_time /= len(elements)
+        print("ELEMNT BUILD TIME : {} | ORDERS : {}, {}".format(mean_time, self.finite_element.face_basis_k.polynomial_order, self.finite_element.cell_basis_l.polynomial_order))
         return elements
 
     def __check_loads(self, loads: List[Load]):
