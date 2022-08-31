@@ -173,13 +173,16 @@ def solve_newton_2(problem: Problem, material: Material, verbose: bool = False, 
             _qp = 0
             for _element_index, element in enumerate(problem.elements):
                 cell_quadrature_size = element.cell.get_quadrature_size(
-                    problem.finite_element.construction_integration_order, quadrature_type=problem.quadrature_type
+                    # problem.finite_element.construction_integration_order, quadrature_type=problem.quadrature_type
+                    problem.finite_element.computation_integration_order, quadrature_type=problem.quadrature_type
                 )
                 cell_quadrature_points = element.cell.get_quadrature_points(
-                    problem.finite_element.construction_integration_order, quadrature_type=problem.quadrature_type
+                    # problem.finite_element.construction_integration_order, quadrature_type=problem.quadrature_type
+                    problem.finite_element.computation_integration_order, quadrature_type=problem.quadrature_type
                 )
                 cell_quadrature_weights = element.cell.get_quadrature_weights(
-                    problem.finite_element.construction_integration_order, quadrature_type=problem.quadrature_type
+                    # problem.finite_element.construction_integration_order, quadrature_type=problem.quadrature_type
+                    problem.finite_element.computation_integration_order, quadrature_type=problem.quadrature_type
                 )
                 x_c = element.cell.get_centroid()
                 h_c = element.cell.get_diameter()

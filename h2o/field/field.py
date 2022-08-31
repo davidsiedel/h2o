@@ -1,5 +1,6 @@
 from h2o.h2o import *
 import h2o.field.fields.field_displacement as fd
+import h2o.field.fields.field_scalar as fs
 
 
 class Field:
@@ -46,6 +47,21 @@ class Field:
             self.euclidean_dimension = 3
             derivation_type, flux_type, grad_type, field_dimension, gradient_dimension, voigt_data = (
                 fd.get_displacement_small_strain_data()
+            )
+        elif field_type in [FieldType.DISPLACEMENT_LARGE_STRAIN_AXISYMMETRIC]:
+            self.euclidean_dimension = 2
+            derivation_type, flux_type, grad_type, field_dimension, gradient_dimension, voigt_data = (
+                fd.get_axisymmetrical_displacement_large_strain_data()
+            )
+        elif field_type in [FieldType.DISPLACEMENT_SMALL_STRAIN_AXISYMMETRIC]:
+            self.euclidean_dimension = 2
+            derivation_type, flux_type, grad_type, field_dimension, gradient_dimension, voigt_data = (
+                fd.get_axisymmetrical_displacement_small_strain_data()
+            )
+        elif field_type in [FieldType.SCALAR_PLANE]:
+            self.euclidean_dimension = 2
+            derivation_type, flux_type, grad_type, field_dimension, gradient_dimension, voigt_data = (
+                fs.get_plane_scalar_data()
             )
         else:
             raise ElementError("the specified field type is not known : {}".format(field_type))

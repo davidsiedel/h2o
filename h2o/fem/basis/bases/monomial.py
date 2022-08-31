@@ -48,7 +48,8 @@ def get_exponents(polynomial_order: int, euclidean_dimension: int) -> ndarray:
         for s in range(polynomial_order + 1):
             for l in range(s + 1):
                 m = s - l
-                exponents_matrix[row_count] = np.array([l, m], dtype=np.uint8)
+                # exponents_matrix[row_count] = np.array([l, m], dtype=np.uint8)
+                exponents_matrix[row_count] = np.array([m, l], dtype=np.uint8)
                 row_count += 1
     elif euclidean_dimension == 3:
         row_count = 0
@@ -57,7 +58,8 @@ def get_exponents(polynomial_order: int, euclidean_dimension: int) -> ndarray:
                 for m in range(s + 1):
                     if not (l + m) > s:
                         n = s - (l + m)
-                        exponents_matrix[row_count] = np.array([l, m, n], dtype=np.uint8)
+                        # exponents_matrix[row_count] = np.array([l, m, n], dtype=np.uint8)
+                        exponents_matrix[row_count] = np.array([n, m, l], dtype=np.uint8)
                         row_count += 1
     else:
         raise ValueError("forbidden euclidean dimension")
@@ -107,7 +109,7 @@ class Monomial:
             get_gradient_operator(polynomial_order, euclidean_dimension, dx) for dx in range(euclidean_dimension)
         ]
 
-    def get_phi_vector(self, point: ndarray, centroid: ndarray, diameter: float) -> ndarray:
+    def get_phi_vector2(self, point: ndarray, centroid: ndarray, diameter: float) -> ndarray:
         """
 
         Args:
@@ -122,14 +124,35 @@ class Monomial:
         centroid_matrix = np.tile(centroid, (self.dimension, 1))
         # phi_matrix = (2.0 * (point_matrix - centroid_matrix) / diameter) ** self.exponents
         _a0 = point_matrix - centroid_matrix
-        _a1 = _a0 / diameter
+        _a1 = 2.0 * _a0 / diameter
         _a2 = _a1 ** self.exponents
         phi_vector = np.prod(_a2, axis=1, dtype=real)
         # phi_matrix = ((point_matrix - centroid_matrix) / diameter) ** self.exponents
         # phi_vector = np.prod(phi_matrix, axis=1, dtype=real)
         return phi_vector
 
-    def get_d_phi_vector(self, point: ndarray, centroid: ndarray, diameter: float, dx: int) -> ndarray:
+    def get_phi_vector(self, point: ndarray, centroid: ndarray, bounding_box: ndarray) -> ndarray:
+        """
+
+        Args:
+            point:
+            centroid:
+            diameter:
+
+        Returns:
+
+        """
+        phi_vector = np.zeros((self.dimension,), dtype=real)
+        euclidean_dimension = point.shape[0]
+        for i in range(self.dimension):
+            prod = 1.
+            for j in range(euclidean_dimension):
+                _a00 = (2.0 * (point[j] - centroid[j])/bounding_box[j]) ** self.exponents[i, j]
+                prod *= _a00
+            phi_vector[i] = prod
+        return phi_vector
+
+    def get_d_phi_vector2(self, point: ndarray, centroid: ndarray, diameter: float, dx: int) -> ndarray:
         """
 
         Args:
@@ -143,5 +166,34 @@ class Monomial:
         """
         grad_dx = self.gradients[dx]
         phi_vector = self.get_phi_vector(point, centroid, diameter)
-        d_phi_vector = (1.0 / diameter) * (grad_dx @ phi_vector.T)
+        d_phi_vector = 2.0 * (1.0 / diameter) * (grad_dx @ phi_vector.T)
+        return d_phi_vector
+
+    def get_d_phi_vector(self, point: ndarray, centroid: ndarray, bounding_box: ndarray, dx: int) -> ndarray:
+        """
+
+        Args:
+            point:
+            centroid:
+            diameter:
+            dx:
+
+        Returns:
+
+        """
+        d_phi_vector = np.zeros((self.dimension,), dtype=real)
+        euclidean_dimension = point.shape[0]
+        for i in range(self.dimension):
+            prod = 1.
+            for j in range(euclidean_dimension):
+                if j != dx:
+                    _a00 = (2.0 * (point[j] - centroid[j]) / bounding_box[j]) ** self.exponents[i, j]
+                    prod *= _a00
+                else:
+                    if self.exponents[i, j] > 0:
+                        _a00 = ((2.0 * self.exponents[i, j])/bounding_box[j]) * (2.0 * (point[j] - centroid[j])/bounding_box[j]) ** (self.exponents[i, j] - 1)
+                        prod *= _a00
+                    else:
+                        prod *= 0.0
+            d_phi_vector[i] = prod
         return d_phi_vector

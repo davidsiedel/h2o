@@ -24,7 +24,19 @@ def get_reference_segment_quadrature_item(integration_order: int, quadrature_ite
     Returns:
 
     """
-    if integration_order == 1:
+    if integration_order == 0:
+        reference_points = [
+            [0.5000000000000000, 0.5000000000000000],
+        ]
+        reference_weights = [
+            1.0000000000000000,
+        ]
+        jacobian = [
+            [
+                [-1.0000000000000000, 1.0000000000000000],
+            ],
+        ]
+    elif integration_order == 1:
         reference_points = [
             [0.5000000000000000, 0.5000000000000000],
         ]

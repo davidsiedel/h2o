@@ -1,5 +1,6 @@
 from h2o.geometry.geometry import *
-import h2o.geometry.quadratures.gauss.gauss_triangle as gauss_triangle
+# import h2o.geometry.quadratures.gauss.gauss_triangle as gauss_triangle
+import h2o.geometry.quadratures.quad2.tri as gauss_triangle
 from h2o.geometry.quadratures.quadrature import *
 
 

@@ -129,7 +129,7 @@ def get_hexahedron_quadrature_size(integration_order: int, quadrature_type: Quad
 
     """
     if quadrature_type == QuadratureType.GAUSS:
-        quadrature_size = gauss_hexahedron.get_number_of_quadrature_points_in_hexahedron(integration_order)
+        quadrature_size = gauss_hexahedron.get_number_of_quadrature_points_in_hexahedron2(integration_order)
     else:
         raise QuadratureError("no such quadrature type as {}".format(quadrature_type))
     return quadrature_size
@@ -149,12 +149,19 @@ def get_hexahedron_quadrature_weights(
 
     """
     if quadrature_type == QuadratureType.GAUSS:
-        quadrature_size = gauss_hexahedron.get_number_of_quadrature_points_in_hexahedron(integration_order)
+        quadrature_size = gauss_hexahedron.get_number_of_quadrature_points_in_hexahedron2(integration_order)
         quadrature_reference_weights = gauss_hexahedron.get_reference_hexahedron_quadrature_item(
             integration_order, QuadratureItem.WEIGHTS
         )
         jacobian_weights = np.zeros((quadrature_size,), dtype=real)
         jacobian_operators = gauss_hexahedron.get_reference_hexahedron_quadrature_item(
+            integration_order, QuadratureItem.JACOBIAN
+        )
+        quadrature_reference_weights = gauss_hexahedron.get_reference_hexahedron_quadrature_item2(
+            integration_order, QuadratureItem.WEIGHTS
+        )
+        jacobian_weights = np.zeros((quadrature_size,), dtype=real)
+        jacobian_operators = gauss_hexahedron.get_reference_hexahedron_quadrature_item2(
             integration_order, QuadratureItem.JACOBIAN
         )
     else:
@@ -189,7 +196,7 @@ def get_hexahedron_quadrature_points(
 
     """
     if quadrature_type == QuadratureType.GAUSS:
-        quadrature_reference_points = gauss_hexahedron.get_reference_hexahedron_quadrature_item(
+        quadrature_reference_points = gauss_hexahedron.get_reference_hexahedron_quadrature_item2(
             integration_order, QuadratureItem.POINTS
         )
         quadrature_points = (quadrature_reference_points @ vertices.T).T

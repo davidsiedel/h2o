@@ -1,6 +1,6 @@
 from h2o.geometry.geometry import *
 import h2o.geometry.shapes.shape_triangle as shape_triangle
-import h2o.geometry.quadratures.gauss.gauss_quadrangle as gauss_quadrangle
+import h2o.geometry.quadratures.gauss.gauss_quadrangle2 as gauss_quadrangle
 from h2o.geometry.quadratures.quadrature import *
 
 
@@ -175,6 +175,9 @@ def get_quadrangle_quadrature_weights(
         jacobian[1, 0] = jacobian_operator[2] @ projected_vertices[1, :]
         jacobian[1, 1] = jacobian_operator[3] @ projected_vertices[1, :]
         jacobian_weights[i] = np.abs(np.linalg.det(jacobian))
+        # jacobian_weights[i] = np.linalg.det(jacobian)
+        if jacobian_weights[i] < 1.e-12:
+            print("jacobian det value is : {}".format(jacobian_weights[i]))
     quadrature_weights = quadrature_reference_weights * jacobian_weights
     return quadrature_weights
 

@@ -8,8 +8,8 @@ from h2o.h2o import *
 class Basis:
     dimension: int
     polynomial_order: int
-    evaluate_derivative: Callable[[ndarray, ndarray, float, int], ndarray]
-    evaluate_function: Callable[[ndarray, ndarray, float], ndarray]
+    evaluate_derivative: Callable[[ndarray, ndarray, ndarray, int], ndarray]
+    evaluate_function: Callable[[ndarray, ndarray, ndarray], ndarray]
 
     def __init__(
         self, polynomial_order: int, euclidean_dimension: int, basis_type: BasisType = BasisType.MONOMIAL,

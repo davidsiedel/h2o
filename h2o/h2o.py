@@ -4,12 +4,14 @@ import numpy as np
 from numpy import ndarray
 import pathlib
 import shutil
+import time
 import os
 
 
 class DebugMode(Enum):
     NONE = auto()
     LIGHT = auto()
+    TWO = auto()
 
 
 class BoundaryType(Enum):
@@ -43,6 +45,15 @@ class ShapeType(Enum):
     PYRAMID = auto()
     POINT = auto()
 
+class IterationOutput(Enum):
+    CONVERGENCE = auto()
+    INTEGRATION_FAILURE = auto()
+    SYSTEM_SOLVED = auto()
+    RESIDUAL_EVALUATED = auto()
+
+class ExternalVariable(Enum):
+    STATE_VARIABLE = auto()
+    FIELD_VARIABLE = auto()
 
 class QuadratureType(Enum):
     GAUSS = auto()
@@ -62,12 +73,15 @@ class ElementType(Enum):
 
 
 class FieldType(Enum):
+    SCALAR_PLANE = auto()
     DISPLACEMENT_LARGE_STRAIN = auto()
     DISPLACEMENT_SMALL_STRAIN = auto()
     DISPLACEMENT_LARGE_STRAIN_PLANE_STRAIN = auto()
     DISPLACEMENT_SMALL_STRAIN_PLANE_STRAIN = auto()
     DISPLACEMENT_LARGE_STRAIN_PLANE_STRESS = auto()
     DISPLACEMENT_SMALL_STRAIN_PLANE_STRESS = auto()
+    DISPLACEMENT_LARGE_STRAIN_AXISYMMETRIC = auto()
+    DISPLACEMENT_SMALL_STRAIN_AXISYMMETRIC = auto()
 
 
 class FluxType(Enum):
@@ -83,6 +97,12 @@ class GradType(Enum):
 class DerivationType(Enum):
     SYMMETRIC = auto()
     REGULAR = auto()
+    SMALL_STRAIN_AXISYMMETRIC = auto()
+    LARGE_STRAIN_AXISYMMETRIC = auto()
+
+class SolverType(Enum):
+    STATIC_CONDENSATION = auto()
+    CELL_EQUILIBRIUM = auto()
 
 
 class GeometryError(Exception):
@@ -117,4 +137,4 @@ real = float
 # intg = np.uint8
 intg = int
 size_type = np.uint8
-# debug_mode = DebugMode.LIGHT
+debug_mode = DebugMode.NONE

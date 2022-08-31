@@ -1,12 +1,19 @@
 import h2o.geometry.shapes.shape_segment as isegment
 import h2o.geometry.shapes.shape_triangle as itriangle
 import h2o.geometry.shapes.shape_quadrangle as iquadrangle
+import h2o.geometry.shapes.shape_quadrangle_diskpp as iquadrangle_diskpp
 import h2o.geometry.shapes.shape_polygon as ipolygon
 import h2o.geometry.shapes.shape_tetrahedron as itetrahedron
 import h2o.geometry.shapes.shape_hexahedron as ihexahedron
 import h2o.geometry.shapes.shape_polyhedron as ipolyhedron
+from h2o.geometry.geometry import get_shape_bounding_box
 from h2o.h2o import *
 
+class QuadrangleImplementation(Enum):
+    DISKPP = auto()
+    NORMAL = auto()
+
+WHICH_QUADRANGLE: QuadrangleImplementation = QuadrangleImplementation.NORMAL
 
 def _check_shape(shape_type: ShapeType, shape_vertices: ndarray):
     """
@@ -166,7 +173,14 @@ def get_quadrature_size(
     elif shape_type == ShapeType.TRIANGLE:
         return itriangle.get_triangle_quadrature_size(integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.QUADRANGLE:
-        return iquadrangle.get_quadrangle_quadrature_size(integration_order, quadrature_type=quadrature_type)
+        if WHICH_QUADRANGLE == QuadrangleImplementation.DISKPP:
+            return iquadrangle_diskpp.get_polygon_quadrature_size(vertices, integration_order,
+                                                                  quadrature_type=quadrature_type)
+        elif WHICH_QUADRANGLE == QuadrangleImplementation.NORMAL:
+            return iquadrangle.get_quadrangle_quadrature_size(integration_order, quadrature_type=quadrature_type)
+        else:
+            raise KeyError
+        # return ipolygon.get_polygon_quadrature_size(vertices, integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.POLYGON:
         return ipolygon.get_polygon_quadrature_size(vertices, integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.TETRAHEDRON:
@@ -205,9 +219,17 @@ def get_quadrature_points(
     elif shape_type == ShapeType.TRIANGLE:
         return itriangle.get_triangle_quadrature_points(vertices, integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.QUADRANGLE:
-        return iquadrangle.get_quadrangle_quadrature_points(
-            vertices, integration_order, quadrature_type=quadrature_type
-        )
+        if WHICH_QUADRANGLE == QuadrangleImplementation.DISKPP:
+            return iquadrangle_diskpp.get_polygon_quadrature_points(
+                vertices, integration_order, quadrature_type=quadrature_type
+            )
+        elif WHICH_QUADRANGLE == QuadrangleImplementation.NORMAL:
+            return iquadrangle.get_quadrangle_quadrature_points(
+                vertices, integration_order, quadrature_type=quadrature_type
+            )
+        else:
+            raise KeyError
+        # return ipolygon.get_polygon_quadrature_points(vertices, integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.POLYGON:
         return ipolygon.get_polygon_quadrature_points(vertices, integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.TETRAHEDRON:
@@ -250,9 +272,17 @@ def get_quadrature_weights(
     elif shape_type == ShapeType.TRIANGLE:
         return itriangle.get_triangle_quadrature_weights(vertices, integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.QUADRANGLE:
-        return iquadrangle.get_quadrangle_quadrature_weights(
-            vertices, integration_order, quadrature_type=quadrature_type
-        )
+        if WHICH_QUADRANGLE == QuadrangleImplementation.DISKPP:
+            return iquadrangle_diskpp.get_polygon_quadrature_weights(
+                vertices, integration_order, quadrature_type=quadrature_type
+            )
+        elif WHICH_QUADRANGLE == QuadrangleImplementation.NORMAL:
+            return iquadrangle.get_quadrangle_quadrature_weights(
+                vertices, integration_order, quadrature_type=quadrature_type
+            )
+        else:
+            raise KeyError
+        # return ipolygon.get_polygon_quadrature_weights(vertices, integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.POLYGON:
         return ipolygon.get_polygon_quadrature_weights(vertices, integration_order, quadrature_type=quadrature_type)
     elif shape_type == ShapeType.TETRAHEDRON:
@@ -289,6 +319,15 @@ class Shape:
         self.vertices = shape_vertices
         self.connectivity = connectivity
 
+    def get_bounding_box(self) -> ndarray:
+        return get_shape_bounding_box(self.vertices)
+
+
+    def get_face_bounding_box(self) -> ndarray:
+        rot = self.get_rotation_matrix()
+        proj_v = (rot @ self.vertices)[:-1,:]
+        return get_shape_bounding_box(proj_v)
+
     def get_centroid(self) -> ndarray:
         """
 
@@ -320,6 +359,7 @@ class Shape:
 
         """
         return get_rotation_matrix(self.type, self.vertices)
+        # return -get_rotation_matrix(self.type, self.vertices)
 
     def get_quadrature_size(
         self, integration_order: int, quadrature_type: QuadratureType = QuadratureType.GAUSS

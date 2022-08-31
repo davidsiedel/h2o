@@ -239,7 +239,7 @@ def get_faces_data(
         g = geof_cell_library[l].face_vertices_ordering
         for u in g:
             c = [v[k] for k in u]
-            tag = "".join([str(item) for item in np.sort(c)])
+            tag = "".join([str(item).zfill(20) for item in np.sort(c)])
             if tag in tags:
                 face_global_index = tags.index(tag)
                 cell_faces_connectivity.append(face_global_index)

@@ -21,6 +21,29 @@ def get_shape_barycenter(vertices: ndarray) -> ndarray:
     return shape_barycenter
 
 
+def get_shape_bounding_box(vertices: ndarray) -> ndarray:
+    """
+    Find the bounding box of a shape
+
+    Args:
+        vertices:
+
+    Returns:
+
+    """
+    euclidean_dimension = vertices.shape[0]
+    number_of_vertices = vertices.shape[1]
+    bounding_box = np.zeros((euclidean_dimension,), dtype=real)
+    for i in range(number_of_vertices):
+        for j in range(number_of_vertices):
+            if j > i:
+                for k in range(euclidean_dimension):
+                    if np.abs(vertices[k, i] - vertices[k, j]) > np.abs(bounding_box[k]):
+                        bounding_box[k] = np.abs(vertices[k, i] - vertices[k, j])
+                        # bounding_box[k] = vertices[k, i] - vertices[k, j]
+    return bounding_box
+
+
 def get_shape_edges(vertices: ndarray) -> ndarray:
     """
     Assuming the shape is a bone or a face, returns its edges

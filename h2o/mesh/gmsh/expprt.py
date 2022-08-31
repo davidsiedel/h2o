@@ -308,7 +308,7 @@ def build_mesh(msh_file_path: str):
             cell_faces_connectivity = []
             for face_index, u in enumerate(cell_ordering):
                 c = [cell_vertices_connectivity[k] for k in u]
-                tag = "".join([str(item) for item in np.sort(c)])
+                tag = "".join([str(item).zfill(20) for item in np.sort(c)])
                 if tag in tags:
                     face_global_index = tags.index(tag)
                     cell_faces_connectivity.append(face_global_index)
