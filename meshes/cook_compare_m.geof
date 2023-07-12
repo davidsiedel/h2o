@@ -1,0 +1,21 @@
+***geometry
+**node
+4 2
+1 0.0000 0.0000
+2 0.0000 0.0440
+3 0.0480 0.0600
+4 0.0480 0.0440
+**element
+2
+1 c2d3 2 4 3
+2 c2d3 1 4 2
+***group
+**nset TOP
+ 2 3
+**nset BOTTOM
+ 1 4
+**nset LEFT
+ 1 2
+**nset RIGHT
+ 3 4
+***return
