@@ -138,3 +138,89 @@ real = float
 intg = int
 size_type = np.uint8
 debug_mode = DebugMode.NONE
+
+def mat2str(
+    mat : np.ndarray,
+    precision: int = 10
+):
+    out = ""
+    if mat.ndim == 1:
+        out += "["
+        for j in range(mat.shape[0]):
+            if mat[j] < -1.e-14:
+                out += "{0:.10f}".format(mat[j])
+            elif mat[j] > 1.e-14:
+                out += " {0:.10f}".format(mat[j])
+            else:
+                out += " 0."
+                for k in range(10):
+                    out += " "
+            if j < mat.shape[0] - 1:
+                out += " "
+        out += "]\n"
+    elif mat.ndim == 2:
+        for i in range(mat.shape[0]):
+            out += "["
+            for j in range(mat.shape[1]):
+                if mat[i, j] < -1.e-10:
+                    out += "{0:.10f}".format(mat[i, j])
+                    # out += f"{mat[i, j]:.{precision}}"
+                elif mat[i, j] > 1.e-10:
+                    out += " {0:.10f}".format(mat[i, j])
+                    # f'{precision:.9f}'                    
+                    # out += " " + f"{mat[i, j]:.{precision}}"
+                else:
+                    out += " 0."
+                    for k in range(10):
+                        out += " "
+                if j < mat.shape[1] - 1:
+                    out += " "
+            out += "]\n"
+    return out
+# {
+#     for (auto i = 0; i < mat.rows(); i++)
+#     {
+#         // if (i > 0)
+#         // {
+#         //     std::cout << " ";
+#         // }
+#         // else
+#         // {
+#         //     std::cout << "[";
+#         // }
+#         std::cout << "[";
+#         for (auto j = 0; j < mat.cols(); j++)
+#         {
+#             if (mat(i, j) < -1.e-14)
+#             {
+#                 std::cout << std::setprecision(precision) << Real(mat(i, j));
+#             }
+#             else if (mat(i, j) > 1.e-14)
+#             {
+#                 std::cout << " " << std::setprecision(precision) << Real(mat(i, j));
+#             }
+#             else
+#             {
+#                 std::cout << " 0.";
+#                 for (size_t i = 0; i < precision; i++)
+#                 {
+#                     std::cout << " ";
+#                 }
+#             }
+#             if (j < mat.cols() - 1)
+#             {
+#                 std::cout << " ";
+#             }
+#         }
+#         std::cout << "]\n";
+#         // if (i < mat.rows() - 1)
+#         // {
+#         //     std::cout << "\n";
+#         // }
+#         // else
+#         // {
+#         //     std::cout << "]";
+#         // }
+#     }
+#     std::cout << "\n";
+# }

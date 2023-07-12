@@ -1,0 +1,57 @@
+----------------------------------------------------------------------------------------------------
+****************** TIME STEPS :
+0.000000E+00, 2.500000E-01, 5.000000E-01, 7.500000E-01, 1.000000E+00
+----------------------------------------------------------------------------------------------------
+****************** MAXIMUM NUMBER OF ITERATIONS PER STEP :
+10
+----------------------------------------------------------------------------------------------------
+****************** FIELD :
+DERIVATION TYPE : SYMMETRIC
+FILED TYPE : DISPLACEMENT_SMALL_STRAIN_PLANE_STRAIN
+GRAD TYPE : DISPLACEMENT_SMALL_STRAIN
+FLUX TYPE : STRESS_CAUCHY
+FIELD DIMENSION : 2
+EUCLIDEAN DIMENSION : 2
+----------------------------------------------------------------------------------------------------
+****************** FINITE ELEMENT :
+FINITE ELEMENT TYPE : HHO_EQUAL
+CONSTRUCTION INTEGRATION ORDER : 4
+COMPUTATION INTEGRATION ORDER : 2
+FACE BASIS K ORDER : 1
+CELL BASIS L ORDER : 1
+CELL BASIS K ORDER : 1
+CELL BASIS R ORDER : 2
+FACE BASIS K DIMENSION : 2
+CELL BASIS L DIMENSION : 3
+CELL BASIS K DIMENSION : 3
+CELL BASIS R DIMENSION : 6
+----------------------------------------------------------------------------------------------------
+****************** BOUNDARY CONDITIONS :
+++++++ BOUNDARY : TOP
+BOUNDARY TYPE : DISPLACEMENT
+DIRECTION : 1
+++++++ BOUNDARY : BOTTOM
+BOUNDARY TYPE : DISPLACEMENT
+DIRECTION : 1
+++++++ BOUNDARY : LEFT
+BOUNDARY TYPE : DISPLACEMENT
+DIRECTION : 0
+----------------------------------------------------------------------------------------------------
+****************** MATERIAL :
+STABILIZATION PARAMETER : 1.0
+BEHAVIOUR NAME : Elasticity
+BEHAVIOUR INTEGRATION TYPE : IntegrationWithConsistentTangentOperator
+NUMBER OF QUADRATURE POINTS : 90036
+LAGRANGE PARAMETER : 1.0
+TEMPERATURE (K) : 293.15
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 0 | LOAD_VALUE : 0.0
+++++ ITER : 0000 | RES_MAX : 0.000000E+00 | TOLERANCE 1.000000E-12 | CONVERGENCE
++ ITERATIONS : 1
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 1 | LOAD_VALUE : 0.25
+++++ ITER : 0000 | RES_MAX : 1.000000E+00
+++++ ITER : 0001 | RES_MAX : 1.918539E-14 | TOLERANCE 1.000000E-12 | CONVERGENCE
++ ITERATIONS : 2
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 2 | LOAD_VALUE : 0.5

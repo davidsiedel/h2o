@@ -233,6 +233,7 @@ def read_msh_file(msh_file_path: str) -> (DataStructure, List[NodeEntity], List[
                 elems_vertices_connectivity = np.zeros((element_nb_nodes,), dtype=int)
                 for v_count in range(element_nb_nodes):
                     elems_vertices_connectivity[v_count] = int(line[v_count + 1])
+                print("adding element :", elems_vertices_connectivity)
                 ee = ElementEntity(entity_dim, entity_tag, element_type, loc_tag, list(elems_vertices_connectivity))
                 element_entities.append(ee)
         return physical_entities, data_structure, node_entities, element_entities, euclidean_dimension
@@ -300,6 +301,7 @@ def build_mesh(msh_file_path: str):
             # print("therrree")
             number_of_cells_in_mesh += 1
             cell_vertices_connectivity = [ii-1 for ii in element_entity.vertices_connectivity]
+            print("adding element :", cell_vertices_connectivity)
             cells_vertices_connectivity.append(cell_vertices_connectivity)
             cell_ordering = get_element_data(element_entity.element_type).connectivity
             cells_ordering.append(cell_ordering)

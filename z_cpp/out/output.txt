@@ -1,0 +1,197 @@
+----------------------------------------------------------------------------------------------------
+****************** TIME STEPS :
+0.000000E+00, 5.263158E-04, 1.052632E-03, 1.578947E-03, 2.105263E-03, 2.631579E-03, 3.157895E-03, 3.684211E-03, 4.210526E-03, 4.736842E-03, 5.263158E-03, 5.789474E-03, 6.315789E-03, 6.842105E-03, 7.368421E-03, 7.894737E-03, 8.421053E-03, 8.947368E-03, 9.473684E-03, 1.000000E-02
+----------------------------------------------------------------------------------------------------
+****************** MAXIMUM NUMBER OF ITERATIONS PER STEP :
+10
+----------------------------------------------------------------------------------------------------
+****************** FIELD :
+DERIVATION TYPE : SYMMETRIC
+FILED TYPE : DISPLACEMENT_SMALL_STRAIN_PLANE_STRAIN
+GRAD TYPE : DISPLACEMENT_SMALL_STRAIN
+FLUX TYPE : STRESS_CAUCHY
+FIELD DIMENSION : 2
+EUCLIDEAN DIMENSION : 2
+----------------------------------------------------------------------------------------------------
+****************** FINITE ELEMENT :
+FINITE ELEMENT TYPE : HHO_EQUAL
+CONSTRUCTION INTEGRATION ORDER : 4
+COMPUTATION INTEGRATION ORDER : 2
+FACE BASIS K ORDER : 1
+CELL BASIS L ORDER : 1
+CELL BASIS K ORDER : 1
+CELL BASIS R ORDER : 2
+FACE BASIS K DIMENSION : 2
+CELL BASIS L DIMENSION : 3
+CELL BASIS K DIMENSION : 3
+CELL BASIS R DIMENSION : 6
+----------------------------------------------------------------------------------------------------
+****************** BOUNDARY CONDITIONS :
+++++++ BOUNDARY : TOP
+BOUNDARY TYPE : DISPLACEMENT
+DIRECTION : 1
+++++++ BOUNDARY : BOTTOM
+BOUNDARY TYPE : DISPLACEMENT
+DIRECTION : 1
+++++++ BOUNDARY : LEFT
+BOUNDARY TYPE : DISPLACEMENT
+DIRECTION : 0
+----------------------------------------------------------------------------------------------------
+****************** MATERIAL :
+STABILIZATION PARAMETER : 172416666666.6667
+BEHAVIOUR NAME : IsotropicLinearHardeningPlasticity
+BEHAVIOUR INTEGRATION TYPE : IntegrationWithConsistentTangentOperator
+NUMBER OF QUADRATURE POINTS : 16
+LAGRANGE PARAMETER : 206900000000.0
+TEMPERATURE (K) : 293.15
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 0 | LOAD_VALUE : 0.0
+++++ ITER : 0000 | RES_MAX : 0.000000E+00 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 1
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 1 | LOAD_VALUE : 0.0005263157894736842
+++++ ITER : 0000 | RES_MAX : 1.000000E+00
+++++ ITER : 0001 | RES_MAX : 2.241075E-15 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 2
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 2 | LOAD_VALUE : 0.0010526315789473684
+++++ ITER : 0000 | RES_MAX : 5.000000E-01
+++++ ITER : 0001 | RES_MAX : 1.778921E-15 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 2
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 3 | LOAD_VALUE : 0.0015789473684210526
+++++ ITER : 0000 | RES_MAX : 3.333333E-01
+++++ ITER : 0001 | RES_MAX : 2.293300E-02
+++++ ITER : 0002 | RES_MAX : 7.708496E-05
+++++ ITER : 0003 | RES_MAX : 1.963482E-09 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 4
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 4 | LOAD_VALUE : 0.002105263157894737
+++++ ITER : 0000 | RES_MAX : 2.500000E-01
+++++ ITER : 0001 | RES_MAX : 5.104898E-02
+++++ ITER : 0002 | RES_MAX : 4.131710E-03
+++++ ITER : 0003 | RES_MAX : 2.731993E-05
+++++ ITER : 0004 | RES_MAX : 2.344125E-09 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 5 | LOAD_VALUE : 0.002631578947368421
+++++ ITER : 0000 | RES_MAX : 2.000000E-01
+++++ ITER : 0001 | RES_MAX : 2.058670E-02
+++++ ITER : 0002 | RES_MAX : 3.724670E-03
+++++ ITER : 0003 | RES_MAX : 4.736328E-05
+++++ ITER : 0004 | RES_MAX : 8.825712E-09 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 6 | LOAD_VALUE : 0.003157894736842105
+++++ ITER : 0000 | RES_MAX : 1.666667E-01
+++++ ITER : 0001 | RES_MAX : 6.762247E-02
+++++ ITER : 0002 | RES_MAX : 2.472609E-03
+++++ ITER : 0003 | RES_MAX : 1.192070E-05
+++++ ITER : 0004 | RES_MAX : 6.061885E-10 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 7 | LOAD_VALUE : 0.0036842105263157894
+++++ ITER : 0000 | RES_MAX : 1.428571E-01
+++++ ITER : 0001 | RES_MAX : 6.550018E-02
+++++ ITER : 0002 | RES_MAX : 2.414739E-03
+++++ ITER : 0003 | RES_MAX : 9.896689E-06
+++++ ITER : 0004 | RES_MAX : 3.333547E-10 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 8 | LOAD_VALUE : 0.004210526315789474
+++++ ITER : 0000 | RES_MAX : 1.250000E-01
+++++ ITER : 0001 | RES_MAX : 5.265079E-02
+++++ ITER : 0002 | RES_MAX : 1.386630E-03
+++++ ITER : 0003 | RES_MAX : 1.348930E-05
+++++ ITER : 0004 | RES_MAX : 6.923128E-10 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 9 | LOAD_VALUE : 0.004736842105263157
+++++ ITER : 0000 | RES_MAX : 1.111111E-01
+++++ ITER : 0001 | RES_MAX : 5.510821E-02
+++++ ITER : 0002 | RES_MAX : 1.414331E-03
+++++ ITER : 0003 | RES_MAX : 1.878318E-05
+++++ ITER : 0004 | RES_MAX : 3.124156E-09 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 10 | LOAD_VALUE : 0.005263157894736842
+++++ ITER : 0000 | RES_MAX : 1.000000E-01
+++++ ITER : 0001 | RES_MAX : 3.166253E-02
+++++ ITER : 0002 | RES_MAX : 4.954997E-03
+++++ ITER : 0003 | RES_MAX : 3.088684E-04
+++++ ITER : 0004 | RES_MAX : 1.902036E-07 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 11 | LOAD_VALUE : 0.005789473684210527
+++++ ITER : 0000 | RES_MAX : 9.090909E-02
+++++ ITER : 0001 | RES_MAX : 2.268082E-02
+++++ ITER : 0002 | RES_MAX : 3.597349E-03
+++++ ITER : 0003 | RES_MAX : 2.954061E-04
+++++ ITER : 0004 | RES_MAX : 1.752948E-07 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 12 | LOAD_VALUE : 0.00631578947368421
+++++ ITER : 0000 | RES_MAX : 8.333333E-02
+++++ ITER : 0001 | RES_MAX : 2.894807E-02
+++++ ITER : 0002 | RES_MAX : 2.364527E-03
+++++ ITER : 0003 | RES_MAX : 3.320987E-05
+++++ ITER : 0004 | RES_MAX : 2.648036E-08 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 13 | LOAD_VALUE : 0.006842105263157894
+++++ ITER : 0000 | RES_MAX : 7.692308E-02
+++++ ITER : 0001 | RES_MAX : 2.237778E-02
+++++ ITER : 0002 | RES_MAX : 2.885358E-03
+++++ ITER : 0003 | RES_MAX : 1.909030E-04
+++++ ITER : 0004 | RES_MAX : 1.431470E-07 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 14 | LOAD_VALUE : 0.007368421052631579
+++++ ITER : 0000 | RES_MAX : 7.142857E-02
+++++ ITER : 0001 | RES_MAX : 2.006909E-02
+++++ ITER : 0002 | RES_MAX : 3.598802E-03
+++++ ITER : 0003 | RES_MAX : 1.840179E-04
+++++ ITER : 0004 | RES_MAX : 8.005605E-08 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 15 | LOAD_VALUE : 0.007894736842105263
+++++ ITER : 0000 | RES_MAX : 6.666667E-02
+++++ ITER : 0001 | RES_MAX : 2.367133E-02
+++++ ITER : 0002 | RES_MAX : 1.328000E-03
+++++ ITER : 0003 | RES_MAX : 7.281941E-06
+++++ ITER : 0004 | RES_MAX : 4.962819E-10 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 16 | LOAD_VALUE : 0.008421052631578947
+++++ ITER : 0000 | RES_MAX : 6.250000E-02
+++++ ITER : 0001 | RES_MAX : 2.397276E-02
+++++ ITER : 0002 | RES_MAX : 7.946555E-04
+++++ ITER : 0003 | RES_MAX : 3.401972E-06
+++++ ITER : 0004 | RES_MAX : 1.498502E-10 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 17 | LOAD_VALUE : 0.008947368421052631
+++++ ITER : 0000 | RES_MAX : 5.882353E-02
+++++ ITER : 0001 | RES_MAX : 2.492974E-02
+++++ ITER : 0002 | RES_MAX : 4.927023E-04
+++++ ITER : 0003 | RES_MAX : 1.666262E-06
+++++ ITER : 0004 | RES_MAX : 1.934439E-11 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 18 | LOAD_VALUE : 0.009473684210526315
+++++ ITER : 0000 | RES_MAX : 5.555556E-02
+++++ ITER : 0001 | RES_MAX : 1.412237E-02
+++++ ITER : 0002 | RES_MAX : 2.152949E-03
+++++ ITER : 0003 | RES_MAX : 1.120339E-04
+++++ ITER : 0004 | RES_MAX : 6.094019E-08 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
+----------------------------------------------------------------------------------------------------
++ TIME_STEP : 19 | LOAD_VALUE : 0.01
+++++ ITER : 0000 | RES_MAX : 5.263158E-02
+++++ ITER : 0001 | RES_MAX : 2.077881E-02
+++++ ITER : 0002 | RES_MAX : 7.240043E-04
+++++ ITER : 0003 | RES_MAX : 3.734959E-06
+++++ ITER : 0004 | RES_MAX : 2.346973E-10 | TOLERANCE 1.000000E-06 | CONVERGENCE
++ ITERATIONS : 5
++ COMPUTATION NUM TIME STEPS : 2.000000E+01
++ COMPUTATION NUM ITERATIONS : 6.900000E+01

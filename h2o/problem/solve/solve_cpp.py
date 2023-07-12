@@ -15,6 +15,7 @@ from scipy.sparse.linalg import spsolve
 from scipy.sparse import csr_matrix
 import matplotlib.pyplot as plt
 import sys
+from scipy.sparse import coo_matrix
 np.set_printoptions(edgeitems=3, infstr='inf', linewidth=1000, nanstr='nan', precision=2,suppress=True, threshold=sys.maxsize, formatter=None)
 
 from h2o.problem.output import create_output_txt
@@ -43,7 +44,8 @@ def solve_condensation(
         _dx: int = problem.field.field_dimension
         _fk: int = problem.finite_element.face_basis_k.dimension
         _cl: int = problem.finite_element.cell_basis_l.dimension
-        external_forces_coefficient: float = 1.0
+        # external_forces_coefficient: float = 1.0
+        external_forces_coefficient: float = 1.e-14
         # ---SET SYSTEM SIZE
         _constrained_system_size, _system_size = problem.get_total_system_size()
         _cell_system_size = problem.get_cell_system_size()
@@ -78,7 +80,8 @@ def solve_condensation(
                 # --------------------------------------------------------------------------------------------------
                 # SET SYSTEM MATRIX AND VECTOR
                 # --------------------------------------------------------------------------------------------------
-                tangent_matrix: ndarray = np.zeros((_constrained_system_size, _constrained_system_size), dtype=real)
+                # tangent_matrix: ndarray = np.zeros((_constrained_system_size, _constrained_system_size), dtype=real)
+                tangent_matrix = coo_matrix((_constrained_system_size, _constrained_system_size))
                 residual: ndarray = np.zeros((_constrained_system_size), dtype=real)
                 # --------------------------------------------------------------------------------------------------
                 # SET TIME INCREMENT
@@ -179,6 +182,10 @@ def solve_condensation(
                         return element_stiffness_matrix, element_internal_forces, element_external_forces, break_iter
 
                     element_stiffness_matrix, element_internal_forces, element_external_forces, break_iteration = make_cell_procedure(break_iteration)
+                    # -> DEBUG
+                    # print("********* cell :", mat2str(element.cell.get_centroid()))
+                    # print("element_residual :", mat2str(element_external_forces - element_internal_forces))
+                    # <- DEBUG
                     local_external_forces_coefficient = 1.
                     local_tolerance = 1.e-6
                     local_iteration = 0
@@ -209,6 +216,12 @@ def solve_condensation(
                             num_cells_iterations += 1
                             local_iteration += 1
                     if not break_iteration:
+                        for f_local, f_global in enumerate(element.faces_indices):
+                            face_displacement_p = total_unknown_vector[f_global * _fk * _dx : (f_global + 1) * _fk * _dx]
+                            # -> DEBUG
+                            # print("*** face :", mat2str(element.faces[f_local].get_centroid()))
+                            # print("unknown :", mat2str(face_displacement_p))
+                            # <- DEBUG
                         # --- BOUNDARY CONDITIONS
                         for boundary_condition in problem.boundary_conditions:
                             # --- DISPLACEMENT CONDITIONS
@@ -224,6 +237,10 @@ def solve_condensation(
                                         _r1 = f_global * _fk * _dx + _fk * (boundary_condition.direction + 1)
                                         face_lagrange = total_unknown_vector[_l0:_l1]
                                         face_displacement = total_unknown_vector[_r0:_r1]
+                                        # -> DEBUG
+                                        # print("***", boundary_condition.boundary_name)
+                                        # print("force :", mat2str(face_lagrange))
+                                        # <- DEBUG
                                         _m_psi_psi_face = np.zeros((_fk, _fk), dtype=real)
                                         _v_face_imposed_displacement = np.zeros((_fk,), dtype=real)
                                         face = element.faces[f_local]
@@ -309,12 +326,22 @@ def solve_condensation(
                                         residual[
                                         _l0:_l1] -= material.lagrange_parameter * face_displacement_difference
                                         # --- LAGRANGE MATRIX PART
-                                        tangent_matrix[_l0:_l1, _r0:_r1] += material.lagrange_parameter * np.eye(
-                                            _fk, dtype=real
-                                        )
-                                        tangent_matrix[_r0:_r1, _l0:_l1] += material.lagrange_parameter * np.eye(
-                                            _fk, dtype=real
-                                        )
+                                        rows_f = []
+                                        cols_f = []
+                                        data_f = []
+                                        for i_c, i_fill in enumerate(range(_l0, _l1)):
+                                            for j_c, j_fill in enumerate(range(_r0, _r1)):
+                                                data_f.append(material.lagrange_parameter * np.eye(_fk, dtype=real)[i_c, j_c])
+                                                rows_f.append(i_fill)
+                                                cols_f.append(j_fill)
+                                        tangent_matrix += coo_matrix((data_f, (rows_f, cols_f)), shape=(_constrained_system_size, _constrained_system_size))
+                                        tangent_matrix += coo_matrix((data_f, (cols_f, rows_f)), shape=(_constrained_system_size, _constrained_system_size))
+                                        # tangent_matrix[_l0:_l1, _r0:_r1] += material.lagrange_parameter * np.eye(
+                                        #     _fk, dtype=real
+                                        # )
+                                        # tangent_matrix[_r0:_r1, _l0:_l1] += material.lagrange_parameter * np.eye(
+                                        #     _fk, dtype=real
+                                        # )
                                         # --- SET EXTERNAL FORCES COEFFICIENT
                                         lagrange_external_forces = (
                                                 material.lagrange_parameter * imposed_face_displacement
@@ -375,6 +402,10 @@ def solve_condensation(
                         v_faces = -element_residual[_c0_c:]
                         m_cell_cell_inv = np.linalg.inv(m_cell_cell)
                         K_cond = m_faces_faces - ((m_faces_cell @ m_cell_cell_inv) @ m_cell_faces)
+                        # -> DEBUG
+                        # print("********* cell :", mat2str(element.cell.get_centroid()))
+                        # print(mat2str(K_cond))
+                        # <- DEBUG
                         R_cond = v_faces - (m_faces_cell @ m_cell_cell_inv) @ v_cell
                         # --- SET CONDENSATION/DECONDENSATION MATRICES
                         element.m_cell_cell_inv = m_cell_cell_inv
@@ -392,7 +423,16 @@ def solve_condensation(
                                 _cg1 = (_j_global + 1) * (_fk * _dx)
                                 _ce0 = _j_local * (_fk * _dx)
                                 _ce1 = (_j_local + 1) * (_fk * _dx)
-                                tangent_matrix[_rg0:_rg1, _cg0:_cg1] += K_cond[_re0:_re1, _ce0:_ce1]
+                                rows_f = []
+                                cols_f = []
+                                data_f = []
+                                for i_c, i_fill in enumerate(range(_rg0, _rg1)):
+                                    for j_c, j_fill in enumerate(range(_cg0, _cg1)):
+                                        data_f.append(K_cond[_re0:_re1, _ce0:_ce1][i_c, j_c])
+                                        rows_f.append(i_fill)
+                                        cols_f.append(j_fill)
+                                tangent_matrix += coo_matrix((data_f, (rows_f, cols_f)), shape=(_constrained_system_size, _constrained_system_size))
+                                # tangent_matrix[_rg0:_rg1, _cg0:_cg1] += K_cond[_re0:_re1, _ce0:_ce1]
                         # --- SET EXTERNAL FORCES COEFFICIENT
                         if np.max(np.abs(element_external_forces)) > external_forces_coefficient:
                             external_forces_coefficient = np.max(np.abs(element_external_forces))
@@ -406,6 +446,15 @@ def solve_condensation(
                     if external_forces_coefficient == 0.0:
                         external_forces_coefficient = 1.0
                     residual_evaluation = np.max(np.abs(residual)) / external_forces_coefficient
+                    print("NORMALIZATION :", external_forces_coefficient)
+                    # -> DEBUG
+                    # print("nrm : ", external_forces_coefficient)
+                    # print("res : ", residual_evaluation)
+                    # print("rhs", mat2str(residual))
+                    # print()
+                    # print("vec", mat2str(total_unknown_vector[:_constrained_system_size]))
+                    # print(mat2str(total_unknown_vector))
+                    # <- DEBUG
                     if residual_evaluation < problem.tolerance:
                         if num_local_iterations > 0:
                             print(
@@ -495,12 +544,17 @@ def solve_condensation(
                         # print("lhs")
                         # print(tangent_matrix)
                         # print("rhs")
-                        # print(residual)
-                        sparse_global_matrix = csr_matrix(tangent_matrix)
-                        scaling_factor = np.max(np.abs(tangent_matrix))
-                        correction = spsolve(sparse_global_matrix, residual)
+                        # print(mat2str(residual))
+                        correction = spsolve(tangent_matrix, residual)
+                        # correction = spsolve(sparse_global_matrix, residual)
+                        # sparse_global_matrix = csr_matrix(tangent_matrix)
+                        # scaling_factor = np.max(np.abs(tangent_matrix))
+                        # correction = spsolve(sparse_global_matrix, residual)
                         # print("correction")
-                        # print(correction)
+                        # -> DEBUG
+                        print("solve")
+                        print(mat2str(correction))
+                        # <- DEBUG
                         total_unknown_vector[:_constrained_system_size] += correction
                         # --- DECONDENSATION
                         for _element_index, element in enumerate(problem.elements):

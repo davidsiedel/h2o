@@ -34,8 +34,9 @@ def get_cartesian_displacement_reconstruction_component_matrix(
     _c_is = cell.get_quadrature_size(_io)
     cell_quadrature_points = cell.get_quadrature_points(_io)
     cell_quadrature_weights = cell.get_quadrature_weights(_io)
-    m_stif: ndarray = np.zeros((_cr, _cr), dtype=real)
+    # m_stif: ndarray = np.zeros((_cr, _cr), dtype=real)
     for _i in range(_dx):
+        m_stif: ndarray = np.zeros((_cr, _cr), dtype=real)
         local_reconstruction_matric = np.zeros((_cr, _es), dtype=real)
         for _j in range(_d):
             for qc in range(_c_is):

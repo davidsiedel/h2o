@@ -8,7 +8,7 @@
 
 //@StrainMeasure Hencky;
 // parameters
-@Parameter young =  1.0;
+@Parameter young =  206.9e9;
 young.setGlossaryName("YoungModulus");
 @Parameter nu = 0.2;
 nu.setGlossaryName("PoissonRatio");

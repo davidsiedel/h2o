@@ -122,11 +122,13 @@ def get_symmetric_cartesian_gradient_component_matrix_rhs(
         _c0 = _j * _cl
         _c1 = (_j + 1) * _cl
         local_grad_matric[:, _c0:_c1] += (1.0 / 2.0) * w_q_c * np.tensordot(phi_k, d_phi_l_i, axes=0)
-    # print("----- rhs")
-    # print(local_grad_matric)
+    print("----- rhs")
+    print(mat2str(local_grad_matric))
     m_mas_inv = np.linalg.inv(m_mas)
     print("---------------------------------------------------------------> element ")
-    print(cell.vertices)
+    print(mat2str(cell.vertices))
+    print("------> centroid ")
+    print(mat2str(cell.get_centroid()))
     for _f, face in enumerate(faces):
         # --- FACE GEOMETRY
         x_f = face.get_centroid()
@@ -144,14 +146,16 @@ def get_symmetric_cartesian_gradient_component_matrix_rhs(
         face_quadrature_points = face.get_quadrature_points(_io)
         face_quadrature_weights = face.get_quadrature_weights(_io)
         print("----------------------> face ", _f)
-        print(face.vertices)
+        print(mat2str(face.vertices))
+        print("------> face_centroid ")
+        print(mat2str(face.get_centroid()))
         print("------> face_orientation ")
         if dist_in_face > 0:
             print(1)
         else:
             print(-1)
         print("------> face_rotation ")
-        print(face_rotation_matrix)
+        print(mat2str(face_rotation_matrix))
         for qf in range(_f_is):
             x_q_f = face_quadrature_points[:, qf]
             w_q_f = face_quadrature_weights[qf]
@@ -177,25 +181,25 @@ def get_symmetric_cartesian_gradient_component_matrix_rhs(
             local_grad_matric[:, _c0:_c1] += (1.0 / 2.0) * w_q_f * np.tensordot(phi_k, psi_k,
                                                                                 axes=0) * normal_vector_component_i
             print("------> weight ", qf)
-            print(np.array([w_q_f]))
+            print(mat2str(np.array([w_q_f])))
             print("------> point ", qf)
-            print(x_q_f)
-            # print("------> row_cell_vector ", qf)
-            # print(phi_k)
-            # print("------> col_face_vector ", qf)
-            # print(psi_k)
-            # print("------> col_cell_vector ", qf)
-            # print(phi_l)
-            # print("------> normal_vector ", qf)
-            # print(face_rotation_matrix[-1, :])
+            print(mat2str(x_q_f))
+            print("------> row_cell_vector ", qf)
+            print(mat2str(phi_k))
+            print("------> col_face_vector ", qf)
+            print(mat2str(psi_k))
+            print("------> col_cell_vector ", qf)
+            print(mat2str(phi_l))
+            print("------> normal_vector ", qf)
+            print(mat2str(face_rotation_matrix[-1, :]))
         print("------> face block ", _i)
         _c0 = _dx * _cl + _f * _dx * _fk + _i * _fk
         _c1 = _dx * _cl + _f * _dx * _fk + (_i + 1) * _fk
-        print(local_grad_matric[:, _c0:_c1])
+        print(mat2str(local_grad_matric[:, _c0:_c1]))
         print("------> face block ", _j)
         _c0 = _dx * _cl + _f * _dx * _fk + _j * _fk
         _c1 = _dx * _cl + _f * _dx * _fk + (_j + 1) * _fk
-        print(local_grad_matric[:, _c0:_c1])
+        print(mat2str(local_grad_matric[:, _c0:_c1]))
     return local_grad_matric
 
 
